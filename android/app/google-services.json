@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "787051080911",
+    "project_id": "facultyload-6be8b",
+    "storage_bucket": "facultyload-6be8b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:787051080911:android:05ac9f8caad884cecfdbba",
+        "android_client_info": {
+          "package_name": "com.example.faculty_load"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAN-cb8hSrRds61TdIKTECZuoRJlvOe5wY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
