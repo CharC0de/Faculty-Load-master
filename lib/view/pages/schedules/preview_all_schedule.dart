@@ -127,7 +127,6 @@ class _PreviewAllSchedulePageState extends State<PreviewAllSchedulePage> {
             await Printing.layoutPdf(onLayout: (format) async => pdf.save());
             // await generateFSTL(widget.schedule, widget.uid);
             // Display success message using the modal helper
-            Modal().snack(context, message: "Faculty Schedule & Teaching Load downloaded successfully!");
           }, child:Text('Preview and Print FSTL'))))
         ],
       ),

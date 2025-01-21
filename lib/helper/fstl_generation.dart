@@ -56,6 +56,7 @@ class FstlGenHelpers{
     Map<String, dynamic> details = jsonDecode(data["details"]);
     Map<String, dynamic> units = jsonDecode(data["units"]);
     String date = data["date"];
+    int quasi = data["quasi"]??0;
     List<Map<String, dynamic>> suggestedSchedule = List<Map<String, dynamic>>.from(jsonDecode(data["suggested_schedule"]));
     List<Map<String, dynamic>> regularSchedule =  List<Map<String, dynamic>>.from(jsonDecode(data["schedule"]));
     List<Map<String, dynamic>> schedule = [];
@@ -66,7 +67,7 @@ class FstlGenHelpers{
     double eqTeaching = 0;
     double prepHours =double.parse(units["number_of_preparation"].toString())*2;
     double consultationHours = 6;
-    eqTeaching = totalHours - consultationHours - prepHours;
+    eqTeaching = totalHours - consultationHours - prepHours-quasi;
     double totalOverload = units["number_of_preparation"]>1? ((units['total_equivalent_units']-18)>0?units['total_equivalent_units']-18:0):((units['total_equivalent_units']-21)>0?units['total_equivalent_units']-21:0);
 
 
@@ -630,7 +631,7 @@ class FstlGenHelpers{
                                       pw.Text('Quasi (hrs):',
                                           style:
                                           const pw.TextStyle(fontSize: 7.5)),
-                                      pw.Text('_________',
+                                      pw.Text('____${emptyIfZero(double.parse(quasi.toString()))}_____',
                                           style: const pw.TextStyle(
                                               decoration:
                                               pw.TextDecoration.underline,

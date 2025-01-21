@@ -42,6 +42,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
   var suggestedSchedules=[];
   var allSchedules =[];
   var date = '';
+  var quasiHours =0;
   FirestoreHelper fh = FirestoreHelper();
 
   @override
@@ -85,7 +86,8 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         "suggested_schedule":jsonEncode(suggestedSchedules),
         "details":jsonEncode(details),
         "units":jsonEncode(units),
-        "date":date
+        "date":date,
+        "quasi":quasiHours
       },
       "schedules", // Save to the 'schedules' collection
     );
@@ -117,9 +119,12 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
     var filePickerResult = await FilePicker.platform.pickFiles();
     if (filePickerResult != null) {
+      int? selectedHours = await _showQuasiHourDialog();
       setState(() {
+        quasiHours = selectedHours??0;
         isLoading = true;
       });
+
       _pdfDoc = await PDFDoc.fromPath(filePickerResult.files.single.path!);
       var res = await _pdfDoc!.text;
 // Get the file path of the selected file
@@ -133,10 +138,11 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         Uri apiUrl = Uri.parse("https://octopus-app-mb7ca.ondigitalocean.app/upload"); // Replace with your Flask API URL
 
         // Call the upload function
-        git init
+
         var result=await uploadPdfToFlaskApi(filePath, apiUrl);
         setState(() {
-          data = result;           isLoading = false;
+          data = result;
+          isLoading = false;
         });
       }catch (e){
         debugPrint("Error: $e");
@@ -179,7 +185,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
     List<Map<String,dynamic>> schedules = List<Map<String,dynamic>>.from(data);
     setState(() {
       allSchedules=[];
-      suggestedSchedules = generateSuggestedSchedule(stringMap,schedules );
+      suggestedSchedules = generateSuggestedSchedule(stringMap,schedules,quasiHours );
     });
     setState((){
        allSchedules.addAll(data);
@@ -222,6 +228,27 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         .replaceAll(' ', '_')
         .replaceAll('.', '')
         .toLowerCase();
+  }
+  Future<int?> _showQuasiHourDialog() async {
+    return await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Select Quasi Hours"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(5, (index) {
+              return ListTile(
+                title: Text(index ==0?"No Quasi":"$index ${index ==1?"hour":"hours"}"),
+                onTap: () {
+                  Navigator.of(context).pop(index);
+                },
+              );
+            }),
+          ),
+        );
+      },
+    );
   }
 
   Map<String, String> extractTeacherDetails(String text) {
@@ -287,19 +314,49 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
     // Convert keys to snake_case
     return result.map((key, value) => MapEntry(toSnakeCase(key), value));
   }
+
+
   List<Map<String, dynamic>> generateSuggestedSchedule(
       Map<String, int> units,
-      List<Map<String, dynamic>> existingSchedule) {
-    // Define working hours limits
-    final dailyMaxHours = {
-      'M': 13,
-      'T': 13,
-      'W': 11,
-      'TH': 13,
-      'F': 9,
-      'S': 3,
-    };
+      List<Map<String, dynamic>> existingSchedule,
+      int quasiHours) {
 
+    List<String> sortWeekByLeastOccupied(List<Map<String, dynamic>> existingSchedule) {
+      // Map to track occupied hours for each day
+      final Map<String, int> occupiedHours = {
+        'M': 0,
+        'T': 0,
+        'W': 0,
+        'TH': 0,
+        'F': 0,
+        'S': 0,
+      };
+
+      // Helper function to convert time to 24-hour format
+      int convertTo24Hour(String time, String daytime) {
+        final hour = int.parse(time.split(':')[0]);
+        if (daytime == 'PM' && hour != 12) return hour + 12;
+        if (daytime == 'AM' && hour == 12) return 0;
+        return hour;
+      }
+
+      // Accumulate occupied hours for each day from the existing schedule
+      for (var item in existingSchedule) {
+        for (var slot in item['schedule']) {
+          final day = slot['day'];
+          final start = convertTo24Hour(slot['time_start'], slot['time_start_daytime']);
+          final end = convertTo24Hour(slot['time_end'], slot['time_end_daytime']);
+
+          // Use a default value of 0 if the day is not already initialized
+          occupiedHours[day] = (occupiedHours[day] ?? 0) + (end - start);
+        }
+      }
+
+      // Sort the days by their occupied hours in ascending order
+      return occupiedHours.keys.toList()
+        ..sort((a, b) => (occupiedHours[a] ?? 0).compareTo(occupiedHours[b] ?? 0));
+    }
+    // Define start and end hours
     final int startHour = 7; // Earliest available hour
     final int endHour = 21; // Latest available hour
 
@@ -342,16 +399,44 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       }
       return true;
     }
-
-    // Find available slots for consultation (6 hours/week, 2 hours/day)
     List<Map<String, dynamic>> preparationSchedules = [];
-    int consultationHoursNeeded = 6;
-    for (var day in dailyMaxHours.keys) {
-      if (consultationHoursNeeded <= 0) break;
+    int preparationHoursNeeded = units['number_of_preparation']! * 2;
+    for (var day in sortWeekByLeastOccupied([...existingSchedule,])) {
+      if (preparationHoursNeeded <= 0) break;
 
       for (int hour = startHour; hour <= endHour - 2; hour++) {
         if (isSlotAvailable(day, hour, 2)) {
           preparationSchedules.add({
+            'day': day,
+            'time_start': '${hour > 12 ? hour - 12 : hour}:00',
+            'time_start_daytime': hour >= 12 ? 'PM' : 'AM',
+            'time_end': '${(hour + 2) > 12 ? (hour + 2) - 12 : (hour + 2)}:00',
+            'time_end_daytime': (hour + 2) >= 12 ? 'PM' : 'AM',
+          });
+          occupiedSlots[day] ??= [];
+          occupiedSlots[day]!.add({'start': hour, 'end': hour + 2});
+          preparationHoursNeeded -= 2;
+          break; // Limit to one preparation slot per day
+        }
+      }
+    }
+    Map<String,dynamic> preparation ={
+      'days': '',
+      'room': '',
+      'schedule': preparationSchedules,
+      'section': '',
+      'subject': 'Preparation',
+      'subject_code': 'PREPARATION',
+    };
+    // Find available slots for consultation (6 hours/week, 2 hours/day)
+    List<Map<String, dynamic>> consultationSchedules = [];
+    int consultationHoursNeeded = 6;
+    for (var day in sortWeekByLeastOccupied([...existingSchedule,preparation])) {
+      if (consultationHoursNeeded <= 0) break;
+
+      for (int hour = startHour; hour <= endHour - 2; hour++) {
+        if (isSlotAvailable(day, hour, 2)) {
+          consultationSchedules.add({
             'day': day,
             'time_start': '${hour > 12 ? hour - 12 : hour}:00',
             'time_start_daytime': hour >= 12 ? 'PM' : 'AM',
@@ -366,48 +451,63 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       }
     }
 
-    // Find available slots for preparation (units["number_of_preparation"] * 2 hours)
-    List<Map<String, dynamic>> consultationSchedules = [];
-    int preparationHoursNeeded = units['number_of_preparation']! * 2;
-    for (var day in dailyMaxHours.keys) {
-      if (preparationHoursNeeded <= 0) break;
 
-      for (int hour = startHour; hour <= endHour - 2; hour++) {
-        if (isSlotAvailable(day, hour, 2)) {
-          consultationSchedules.add({
-            'day': day,
-            'time_start': '${hour > 12 ? hour - 12 : hour}:00',
-            'time_start_daytime': hour >= 12 ? 'PM' : 'AM',
-            'time_end': '${(hour + 2) > 12 ? (hour + 2) - 12 : (hour + 2)}:00',
-            'time_end_daytime': (hour + 2) >= 12 ? 'PM' : 'AM',
-          });
-          occupiedSlots[day] ??= [];
-          occupiedSlots[day]!.add({'start': hour, 'end': hour + 2});
-          preparationHoursNeeded -= 2;
-          break; // Limit to one preparation slot per day
+    // Find available slots for preparation (units["number_of_preparation"] * 2 hours)
+
+
+    // Find available slots for quasi hours (quasiHours * 2 hours)
+    Map<String,dynamic>consultation=  {
+      'days': '',
+    'room': 'ONLINE',
+    'schedule': consultationSchedules,
+    'section': '',
+    'subject': 'Consultation',
+    'subject_code': 'CONSULTATION',
+  };
+    List<Map<String, dynamic>> quasiSchedules = [];
+    if (quasiHours > 0) {
+      int quasiHoursNeeded = quasiHours;
+      for (var day in sortWeekByLeastOccupied([...existingSchedule,preparation,consultation])) {
+        if (quasiHoursNeeded <= 0) break;
+
+        for (int hour = startHour; hour <= endHour - 1; hour++) {
+          int slotDuration = quasiHoursNeeded >= 2 ? 2 : 1; // Adjust slot duration dynamically
+          if (isSlotAvailable(day, hour, slotDuration)) {
+            quasiSchedules.add({
+              'day': day,
+              'time_start': '${hour > 12 ? hour - 12 : hour}:00',
+              'time_start_daytime': hour >= 12 ? 'PM' : 'AM',
+              'time_end': '${(hour + slotDuration) > 12 ? (hour + slotDuration) - 12 : (hour + slotDuration)}:00',
+              'time_end_daytime': (hour + slotDuration) >= 12 ? 'PM' : 'AM',
+            });
+            occupiedSlots[day] ??= [];
+            occupiedSlots[day]!.add({'start': hour, 'end': hour + slotDuration});
+            quasiHoursNeeded -= slotDuration; // Deduct the allocated hours
+            break; // Limit to one quasi slot per day
+          }
         }
       }
     }
 
+
     // Final output
-    return [
-      {
-        'days': '',
-        'room': 'ONLINE',
-        'schedule': consultationSchedules,
-        'section': '',
-        'subject': 'Consultation',
-        'subject_code': 'CONSULTATION',
-      },
-      {
+    List<Map<String, dynamic>> schedules = [
+      preparation,
+      consultation
+    ];
+
+    if (quasiHours > 0) {
+      schedules.add({
         'days': '',
         'room': '',
-        'schedule': preparationSchedules,
+        'schedule': quasiSchedules,
         'section': '',
-        'subject': 'Preparation',
-        'subject_code': 'PREPARATION',
-      },
-    ];
+        'subject': 'Quasi',
+        'subject_code': 'QUASI',
+      });
+    }
+
+    return schedules;
   }
   Map<String, int> convertMapToInt(Map<String, String> inputMap) {
     return inputMap.map((key, value) => MapEntry(key, int.parse(value)));
