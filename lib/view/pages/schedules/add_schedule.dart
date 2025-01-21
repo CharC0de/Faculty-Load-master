@@ -133,11 +133,10 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         Uri apiUrl = Uri.parse("https://octopus-app-mb7ca.ondigitalocean.app/upload"); // Replace with your Flask API URL
 
         // Call the upload function
-
+        git init
         var result=await uploadPdfToFlaskApi(filePath, apiUrl);
         setState(() {
-          data = result;
-          isLoading = false;
+          data = result;           isLoading = false;
         });
       }catch (e){
         debugPrint("Error: $e");

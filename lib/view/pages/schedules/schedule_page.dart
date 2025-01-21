@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:faculty_load/core/constants/colors.dart';
 import 'package:faculty_load/data/firestore_helper.dart';
+import 'package:faculty_load/helper/fstl_generation.dart';
 import 'package:faculty_load/helper/modal.dart';
 import 'package:faculty_load/models/user_data.dart';
 import 'package:faculty_load/view/pages/schedules/add_schedule.dart';
@@ -128,7 +129,7 @@ class _SchedulesPageState extends State<SchedulesPage> {
                       final scheduleData = schedulesLists[index].data() as Map<String, dynamic>;
                       final scheduleId = schedulesLists[index].id; // Get schedule document ID
                       scheduleData['id'] = scheduleId; // Add id to schedule data
-                      final school_yearr = scheduleData['school_year'] ?? '';
+                      final school_year = scheduleData['school_year'] ?? '';
                       final semester = scheduleData['semester'] ?? '';
                       final schedule = scheduleData['schedule'] ?? '';
                       final status = scheduleData['status'] ?? false;
@@ -142,7 +143,8 @@ class _SchedulesPageState extends State<SchedulesPage> {
                             MaterialPageRoute(
                               builder: (_) => PreviewAllSchedulePage(
                                 schedule: schedule,
-                                title: '$school_yearr $semester',
+                                scheduleData:FstlGenHelpers.convertSchedule(schedulesLists[index] as DocumentSnapshot<Object?>),
+                                title: '$school_year $semester',
                               ),
                             ),
                           );
@@ -208,7 +210,7 @@ class _SchedulesPageState extends State<SchedulesPage> {
                                         ? GestureDetector(
                                             onTap: () {
                                               selectedsemester = semester;
-                                              school_year.text = school_yearr;
+                                              school_year.text = school_year;
                                               openModal(context, scheduleId); // Open modal for editing schedule
                                             },
                                             child: Row(

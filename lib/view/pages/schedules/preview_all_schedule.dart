@@ -2,20 +2,26 @@
 
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:faculty_load/data/firestore_helper.dart';
+import 'package:faculty_load/helper/fstl_generation.dart';
 import 'package:faculty_load/view/pages/schedules/preview_schedule_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:faculty_load/core/constants/colors.dart';
 import 'package:flutter/widgets.dart';
+import 'package:printing/printing.dart';
+
+import '../../../helper/modal.dart';
 
 // PreviewAllSchedulePage is a StatefulWidget that displays a list of schedules
 class PreviewAllSchedulePage extends StatefulWidget {
   final String schedule; // The schedule data passed to the page
+  final Map<String,dynamic> scheduleData;
   final String title; // The title of the page, passed to the widget
 
   // Constructor to accept schedule data and title
-  PreviewAllSchedulePage({required this.schedule, required this.title});
+  PreviewAllSchedulePage({required this.schedule, required this.title,required this.scheduleData});
 
   @override
   _PreviewAllSchedulePageState createState() => _PreviewAllSchedulePageState();
@@ -108,6 +114,21 @@ class _PreviewAllSchedulePageState extends State<PreviewAllSchedulePage> {
                     },
                   ),
           )
+        ],
+
+      ),
+      bottomNavigationBar: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(child: Padding(padding: EdgeInsets.all(5), child: ElevatedButton(onPressed: () async {
+
+
+            final pdf =await FstlGenHelpers.generatePdf(widget.scheduleData);
+            await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+            // await generateFSTL(widget.schedule, widget.uid);
+            // Display success message using the modal helper
+            Modal().snack(context, message: "Faculty Schedule & Teaching Load downloaded successfully!");
+          }, child:Text('Preview and Print FSTL'))))
         ],
       ),
     );
