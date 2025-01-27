@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:get/get.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -57,6 +58,7 @@ class FstlGenHelpers{
     Map<String, dynamic> units = jsonDecode(data["units"]);
     String date = data["date"];
     int quasi = data["quasi"]??0;
+    final List<String> editableCodes = ["PREPARATION", "CONSULTATION", "QUASI"];
     List<Map<String, dynamic>> suggestedSchedule = List<Map<String, dynamic>>.from(jsonDecode(data["suggested_schedule"]));
     List<Map<String, dynamic>> regularSchedule =  List<Map<String, dynamic>>.from(jsonDecode(data["schedule"]));
     List<Map<String, dynamic>> schedule = [];
@@ -914,7 +916,6 @@ class FstlGenHelpers{
     final subjectColors = <String, PdfColor>{};
     final Set<String> blacklist = <String>{};
 
-    // Assign colors to subjects
     for (var entry in schedule) {
       subjectColors.putIfAbsent(entry["subject"], () {
         final hue = random.nextDouble();
@@ -922,24 +923,8 @@ class FstlGenHelpers{
       });
     }
 
-    // Calculate total hours per day
-    final Map<String, double> totalHoursPerDay = {
-      for (var day in days) day: 0
-    };
-
-    for (var entry in schedule) {
-      final schedules = entry["schedule"] as List;
-      for (var sched in schedules) {
-        final day = sched["day"];
-        final startTime = parseTime(sched["time_start"], sched["time_start_daytime"]);
-        final endTime = parseTime(sched["time_end"], sched["time_end_daytime"]);
-        totalHoursPerDay[day] = totalHoursPerDay[day]! +
-            endTime.difference(startTime).inMinutes / 30 * 30 / 60; // Half-hour increments
-      }
-    }
-
     return pw.Table(
-      border: pw.TableBorder.all(),
+      border: pw.TableBorder(verticalInside: pw.BorderSide(color: PdfColors.black),left: pw.BorderSide(color: PdfColors.black), right: pw.BorderSide(color: PdfColors.black),bottom: pw.BorderSide(color: PdfColors.black),top:pw.BorderSide(color: PdfColors.black)),
       columnWidths: {
         0: pw.FlexColumnWidth(1.5),
         for (int i = 1; i <= days.length; i++) i: pw.FlexColumnWidth(0.8),
@@ -949,97 +934,127 @@ class FstlGenHelpers{
         pw.TableRow(
           children: [
             pw.Container(
+              decoration: pw.BoxDecoration(border: pw.TableBorder.all(color: PdfColors.black)),
               alignment: pw.Alignment.center,
               child: pw.Text("TIME", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
             ),
             ...fullDays.map((day) => pw.Container(
               alignment: pw.Alignment.center,
+              decoration: pw.BoxDecoration(border: pw.TableBorder.all(color: PdfColors.black)),
               child: pw.Text(day, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
             )),
           ],
         ),
         // Time Slot Rows
         ...timeSlots.map((timeSlot) {
+          // Find the maximum content size for this row
+          String maxInfo = "";
+          final cellContents = days.map((day) {
+            final matchingSubjects = schedule.where((entry) {
+              return (entry["schedule"] as List).any((s) {
+                if (s["day"] == day) {
+                  final startTime = parseTime(s["time_start"], s["time_start_daytime"]);
+                  final endTime = parseTime(s["time_end"], s["time_end_daytime"]);
+                  final slotStart = parseTime(
+                    timeSlot.split(" - ")[0],
+                    timeSlot.contains("AM") ? "AM" : "PM",
+                  );
+                  return (slotStart.isAtSameMomentAs(startTime) || slotStart.isAfter(startTime)) &&
+                      slotStart.isBefore(endTime);
+                }
+                return false;
+              });
+            }).toList();
+            //[...info.map((data)=>List.generate(data.length, (_) => "_").join(""))].join('\n')
+
+            if (matchingSubjects.isNotEmpty) {
+              final firstSubject = matchingSubjects.first;
+              final subjectKey = "${firstSubject["subject"]}-${day}";
+              final subjectColor = subjectColors[firstSubject["subject"]] ?? PdfColors.white;
+              final section =firstSubject["section"] ?? '';
+              final subject =firstSubject["room"] ?? '';
+              final info = [
+                firstSubject["subject_code"] ?? 'Unknown',
+                firstSubject["subject"] ?? 'No Subject',
+                section==''?"__":section,
+                subject==''?"_":subject,
+              ];
+              if (!blacklist.contains(subjectKey)) {
+                blacklist.add(subjectKey);
+
+
+                return {"content": info.join('\n'), "color": subjectColor,};
+              }
+              else{
+                return {"content": "_", "color": subjectColor};
+              }
+            }
+            return {"content": "", "color": PdfColors.white};
+          }).toList();
+          final toSort =[...cellContents];
+         toSort.sort((a,b){
+            final bContent = b['content'] as String;
+            final aContent = a['content'] as String;
+            return bContent.length-aContent.length;
+          });
+
+             maxInfo = toSort[0]['content'] as String;
+
+          // Adjust other cells to match the maximum content size
           return pw.TableRow(
             children: [
               pw.Container(
+                decoration: pw.BoxDecoration(border: pw.TableBorder(top: pw.BorderSide(color: PdfColors.black))),
                 padding: pw.EdgeInsets.only(left: 10),
                 child: pw.Text(timeSlot.replaceAll(RegExp(r' AM| PM'), ''), style: pw.TextStyle(fontSize: 8)),
                 alignment: pw.Alignment.centerLeft,
               ),
-              ...days.map((day) {
-                final matchingSubjects = schedule.where((entry) {
-                  return (entry["schedule"] as List).any((s) {
-                    if (s["day"] == day) {
-                      final startTime = parseTime(s["time_start"], s["time_start_daytime"]);
-                      final endTime = parseTime(s["time_end"], s["time_end_daytime"]);
-                      final slotStart = parseTime(
-                        timeSlot.split(" - ")[0],
-                        timeSlot.contains("AM") ? "AM" : "PM",
-                      );
-                      return (slotStart.isAtSameMomentAs(startTime) || slotStart.isAfter(startTime)) &&
-                          slotStart.isBefore(endTime);
-                    }
-                    return false;
-                  });
-                }).toList();
+              ...cellContents.map((cellContent) {
+                final content = cellContent["content"] as String;
+                final color = cellContent["color"] as PdfColor;
 
-                if (matchingSubjects.isNotEmpty) {
-                  final firstSubject = matchingSubjects.first;
-                  final subjectKey = "${firstSubject["subject"]}-${day}";
-                  final subjectColor = subjectColors[firstSubject["subject"]] ?? PdfColors.white;
-                  if (!blacklist.contains(subjectKey)) {
-                    blacklist.add(subjectKey);
-                    final info = [
-                      firstSubject["subject_code"] ?? 'Unknown',
-                      firstSubject["subject"] ?? 'No Subject',
-                      firstSubject["section"] ?? '',
-                      firstSubject["room"] ?? '',
-                    ];
-
+                if(content.isNotEmpty){
+                  if (content!="_") {
+                    final richContent =  content.split("\n");
                     return pw.Container(
                       alignment: pw.Alignment.center,
                       padding: pw.EdgeInsets.all(0.5),
-                      color: subjectColor,
-                      child: pw.Text(
-                        info.join("\n"),
-                        style: pw.TextStyle(color: PdfColors.black, fontSize: 5),
+                      color: color,
+                      child: pw.RichText(text:
+                      pw.TextSpan(
+                          children:[...richContent.map((data)=>pw.TextSpan(text:richContent[richContent.length-1]!=data?data+"\n":data,style: pw.TextStyle(color: data=="_"||data=="__"?color:PdfColors.black,fontSize: 5)))]
+                      ),
                         textAlign: pw.TextAlign.center,
                       ),
                     );
                   } else {
+
                     return pw.Container(
-                      color: subjectColor,
+                      padding: pw.EdgeInsets.all(0.5),
+                      color: color,
                       child: pw.Text(
-                        "_",
-                        style: pw.TextStyle(color: subjectColor, fontSize: 8),
+                        [..."${maxInfo}".split("\n").map((data)=>List.generate(data.length, (_) => "*").join(""))].join('\n'),
+                        style: pw.TextStyle(color: color, fontSize: maxInfo == '_'?8:5),
+                        textAlign: pw.TextAlign.center,
                       ),
                     );
                   }
-                } else {
-                  return pw.Container();
                 }
+                else{
+                  return pw.Container(
+
+                    decoration: pw.BoxDecoration(border: pw.TableBorder.all()),
+                  );
+                }
+
               }),
             ],
           );
         }),
-        // Total Hours Row
-        pw.TableRow(
-          children: [
-            pw.Container(
-              alignment: pw.Alignment.centerLeft,
-              padding: pw.EdgeInsets.only(left: 10),
-              child: pw.Text("TOTAL HOURS", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
-            ),
-            ...days.map((day) => pw.Container(
-              alignment: pw.Alignment.center,
-              child: pw.Text("${totalHoursPerDay[day]}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 8)),
-            )),
-          ],
-        ),
       ],
     );
   }
+
 
 
 

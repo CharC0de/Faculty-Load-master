@@ -178,57 +178,99 @@ class _SchedulesPageState extends State<SchedulesPage> {
                                   children: [
                                     (_userData.role == "admin")
                                         ? GestureDetector(
-                                            onTap: () async {
-                                              DateTime now = DateTime.now();
-                                              String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
-                                              await fh.updateItem(scheduleId, {"status": !status}, "schedules");
-                                              await fh.createItem({
-                                                "uid": widget.uid,
-                                                "receiver": subject['uid'],
-                                                "title": "Schedule Status",
-                                                "message":
-                                                    "${subject['school_year']} ${subject['semester']} schedule status has been ${status == false ? 'APPROVED' : 'REVOKED'} at ${formattedDate}."
-                                              }, "notifications");
-                                              Modal().snack(context,
-                                                  message: status == false ? "Schedule approved successfully!" : "Approval revoked successfully!");
-                                            },
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  status == false ? Icons.check : Icons.close,
-                                                  color: mainColor,
-                                                ),
-                                                SizedBox(
-                                                  width: 8,
-                                                ),
-                                                Text(status == false ? "Approve Status" : "Revoke Approval")
-                                              ],
-                                            ),
-                                          )
+                                      onTap: () async {
+                                        DateTime now = DateTime.now();
+                                        String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
+                                        await fh.updateItem(scheduleId, {"status": !status}, "schedules");
+                                        await fh.createItem({
+                                          "uid": widget.uid,
+                                          "receiver": subject['uid'],
+                                          "title": "Schedule Status",
+                                          "message":
+                                          "${subject['school_year']} ${subject['semester']} schedule status has been ${status == false ? 'APPROVED' : 'REVOKED'} at ${formattedDate}."
+                                        }, "notifications");
+                                        Modal().snack(context,
+                                            message: status == false ? "Schedule approved successfully!" : "Approval revoked successfully!");
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            status == false ? Icons.check : Icons.close,
+                                            color: mainColor,
+                                          ),
+                                          SizedBox(
+                                            width: 8,
+                                          ),
+                                          Text(status == false ? "Approve Status" : "Revoke Approval")
+                                        ],
+                                      ),
+                                    )
+                                        : SizedBox(),
+                                    (_userData.role == "admin")
+                                        ? GestureDetector(
+                                      onTap: () async {
+                                        bool confirm = await showDialog(
+                                          context: context,
+                                          builder: (_) => AlertDialog(
+                                            title: Text('Confirm Deletion'),
+                                            content: Text('Are you sure you want to delete this schedule?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                child: Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, true),
+                                                child: Text('Delete', style: TextStyle(color: Colors.red)),
+                                              ),
+                                            ],
+                                          ),
+                                        ) ??
+                                            false;
+
+                                        if (confirm) {
+                                          await fh.deleteItem(scheduleId, 'schedules');
+                                          Modal().snack(context, message: 'Schedule deleted successfully!');
+                                        }
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                          SizedBox(
+                                            width: 8,
+                                          ),
+                                          Text('Delete'),
+                                        ],
+                                      ),
+                                    )
                                         : SizedBox(),
                                     (widget.uid == subject['uid'])
                                         ? GestureDetector(
-                                            onTap: () {
-                                              selectedsemester = semester;
-                                              school_year.text = school_year;
-                                              openModal(context, scheduleId); // Open modal for editing schedule
-                                            },
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.edit,
-                                                  color: mainColor,
-                                                ),
-                                                SizedBox(
-                                                  width: 8,
-                                                ),
-                                                Text("Edit")
-                                              ],
-                                            ),
-                                          )
+                                      onTap: () {
+                                        selectedsemester = semester;
+                                        school_year.text = school_year;
+                                        openModal(context, scheduleId); // Open modal for editing schedule
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.edit,
+                                            color: mainColor,
+                                          ),
+                                          SizedBox(
+                                            width: 8,
+                                          ),
+                                          Text("Edit")
+                                        ],
+                                      ),
+                                    )
                                         : SizedBox(),
                                   ],
-                                )
+                                ),
+
                               ],
                             ),
                           ),
