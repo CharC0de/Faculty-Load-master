@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:faculty_load/core/constants/constants.dart';
 import 'package:faculty_load/data/firestore_helper.dart';
+import 'package:faculty_load/view/pages/schedules/edit_schedule.dart';
 import 'package:faculty_load/view/pages/schedules/preview_schedule_page.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -43,6 +44,11 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
   var allSchedules =[];
   var date = '';
   var quasiHours =0;
+  final List<String> editableSubjectCodes = [
+    "QUASI",
+    "CONSULTATION",
+    "PREPARATION"
+  ];
   FirestoreHelper fh = FirestoreHelper();
 
   @override
@@ -909,6 +915,28 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
     // Split the modified text into a list of strings based on the commas and return the list
     return temp_text.split(",");
   }
+  void _editSchedule(Map<String, dynamic> subject, int index) async {
+    final updatedSubject = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditSubjectScreen(
+          subject: subject,
+          allSubjects: List<Map<String,dynamic>>.from(allSchedules),
+          editableSubjectCodes: editableSubjectCodes,
+        ),
+      ),
+    );
+
+    if (updatedSubject != null) {
+      setState(() {
+        final index = allSchedules
+            .indexWhere((s) => s['subject_code'] == subject['subject_code']);
+        if (index != -1) {
+          allSchedules[index] = updatedSubject;
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -978,6 +1006,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                       : ListView.builder(
                           itemCount: allSchedules.length,
                           itemBuilder: (context, index) {
+                            final isEditable = editableSubjectCodes.contains(allSchedules[index]['subject_code']);
                             return GestureDetector(
                               onTap: () {
                                 Navigator.of(context).push(
@@ -1006,12 +1035,18 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                                     color: Colors.black54,
                                   ),
                                 ),
-                                trailing: Icon(
+
+                                trailing:Icon(
                                   Icons.arrow_forward_ios,
-                                  size: 16.0,
+                                  size: 4.0,
                                   color: Colors.black54,
+
+
                                 ),
-                              ),
+
+                                leading:isEditable?IconButton(icon:Icon(Icons.edit,size: 16.0,
+                                  color: Colors.black54,),onPressed:() => _editSchedule(allSchedules[index], index)):null,
+                                )
                             );
                           },
                         ),
