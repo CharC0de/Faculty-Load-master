@@ -11,8 +11,9 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'dart:math';
 
-class FstlGenHelpers{
-  static Map<String, dynamic> convertSchedule(DocumentSnapshot<Object?> snapshot) {
+class FstlGenHelpers {
+  static Map<String, dynamic> convertSchedule(
+      DocumentSnapshot<Object?> snapshot) {
     // Extract the data from the snapshot
     final data = snapshot.data() as Map<String, dynamic>?;
 
@@ -22,9 +23,7 @@ class FstlGenHelpers{
 
     // Convert the data to Map<String, Map<String, dynamic>>
     final result = data.map((key, value) {
-
       return MapEntry(key, value);
-
     });
     debugPrint("$result");
     return result;
@@ -57,21 +56,29 @@ class FstlGenHelpers{
     Map<String, dynamic> details = jsonDecode(data["details"]);
     Map<String, dynamic> units = jsonDecode(data["units"]);
     String date = data["date"];
-    int quasi = data["quasi"]??0;
+    int quasi = data["quasi"] ?? 0;
     final List<String> editableCodes = ["PREPARATION", "CONSULTATION", "QUASI"];
-    List<Map<String, dynamic>> suggestedSchedule = List<Map<String, dynamic>>.from(jsonDecode(data["suggested_schedule"]));
-    List<Map<String, dynamic>> regularSchedule =  List<Map<String, dynamic>>.from(jsonDecode(data["schedule"]));
+    List<Map<String, dynamic>> suggestedSchedule =
+        List<Map<String, dynamic>>.from(jsonDecode(data["suggested_schedule"]));
+    List<Map<String, dynamic>> regularSchedule =
+        List<Map<String, dynamic>>.from(jsonDecode(data["schedule"]));
     List<Map<String, dynamic>> schedule = [];
     schedule.addAll(regularSchedule);
     schedule.addAll(suggestedSchedule);
     double totalHours = 0;
     totalHours = getTotalHours(schedule);
     double eqTeaching = 0;
-    double prepHours =double.parse(units["number_of_preparation"].toString())*2;
+    double prepHours =
+        double.parse(units["number_of_preparation"].toString()) * 2;
     double consultationHours = 6;
-    eqTeaching = totalHours - consultationHours - prepHours-quasi;
-    double totalOverload = units["number_of_preparation"]>1? ((units['total_equivalent_units']-18)>0?units['total_equivalent_units']-18:0):((units['total_equivalent_units']-21)>0?units['total_equivalent_units']-21:0);
-
+    eqTeaching = totalHours - consultationHours - prepHours - quasi;
+    double totalOverload = units["number_of_preparation"] > 1
+        ? ((units['total_equivalent_units'] - 18) > 0
+            ? units['total_equivalent_units'] - 18
+            : 0)
+        : ((units['total_equivalent_units'] - 21) > 0
+            ? units['total_equivalent_units'] - 21
+            : 0);
 
     String schoolYear = data['school_year'];
     String semester = data['semester'];
@@ -406,7 +413,7 @@ class FstlGenHelpers{
                   // Header Row
                   pw.TableRow(
                     decoration:
-                    const pw.BoxDecoration(color: PdfColors.grey300),
+                        const pw.BoxDecoration(color: PdfColors.grey300),
                     children: [
                       paddedText('No.', bold: true),
                       paddedText('Subject Code', bold: true),
@@ -426,15 +433,16 @@ class FstlGenHelpers{
                     final item = regularSchedule[index];
                     return tableRow(
                       index + 1,
-                      item["subject_code"]??"",
-                      item["subject"]??"",
-                      item["section"]??"",
-                      item["lec_units"]??"", // Example: Lec Units
-                      item["lab_units"]??"", // Example: Lab Units
-                      item["lec_hours"]??"", // Example: Lec Hours
-                      item["lab_hours"]??"", // Example: Lab Hours
-                      getMergedSchedule(List<Map<String, dynamic>>.from(item['schedule'])),
-                      item["room"]??"",
+                      item["subject_code"] ?? "",
+                      item["subject"] ?? "",
+                      item["section"] ?? "",
+                      item["lec_units"] ?? "", // Example: Lec Units
+                      item["lab_units"] ?? "", // Example: Lab Units
+                      item["lec_hours"] ?? "", // Example: Lec Hours
+                      item["lab_hours"] ?? "", // Example: Lab Hours
+                      getMergedSchedule(
+                          List<Map<String, dynamic>>.from(item['schedule'])),
+                      item["room"] ?? "",
                       item["no_of_students"], // Example: No. of students
                     );
                   })
@@ -458,7 +466,7 @@ class FstlGenHelpers{
                                   style: pw.TextStyle(fontSize: 6.5),
                                 ),
                                 pw.Text(
-                                  '___${units["academic_equivalent_units"]==0?'':units["academic_equivalent_units"]}______',
+                                  '___${units["academic_equivalent_units"] == 0 ? '' : units["academic_equivalent_units"]}______',
                                   style: pw.TextStyle(
                                       fontSize: 6.5,
                                       decoration: pw.TextDecoration.underline),
@@ -472,7 +480,7 @@ class FstlGenHelpers{
                                   style: pw.TextStyle(fontSize: 6.5),
                                 ),
                                 pw.Text(
-                                  '_____${units["administrative/research/extension_units"]==0?'':units["administrative/research/extension_units"]}_____',
+                                  '_____${units["administrative/research/extension_units"] == 0 ? '' : units["administrative/research/extension_units"]}_____',
                                   style: pw.TextStyle(
                                       fontSize: 6.5,
                                       decoration: pw.TextDecoration.underline),
@@ -486,7 +494,7 @@ class FstlGenHelpers{
                                   style: pw.TextStyle(fontSize: 6.5),
                                 ),
                                 pw.Text(
-                                  '___${units["total_equivalent_units"]==0?'':units["total_equivalent_units"]}______',
+                                  '___${units["total_equivalent_units"] == 0 ? '' : units["total_equivalent_units"]}______',
                                   style: pw.TextStyle(
                                       fontSize: 6.5,
                                       decoration: pw.TextDecoration.underline),
@@ -505,7 +513,7 @@ class FstlGenHelpers{
                               style: pw.TextStyle(fontSize: 6.5),
                             ),
                             pw.Text(
-                              '___${units["total_contact_hours"]==0?'':units["total_contact_hours"]}______',
+                              '___${units["total_contact_hours"] == 0 ? '' : units["total_contact_hours"]}______',
                               style: pw.TextStyle(
                                   fontSize: 6.5,
                                   decoration: pw.TextDecoration.underline),
@@ -517,7 +525,7 @@ class FstlGenHelpers{
                               style: pw.TextStyle(fontSize: 6.5),
                             ),
                             pw.Text(
-                              '___${units["total_no_of_students"]==0?'':units["total_no_of_students"]}______',
+                              '___${units["total_no_of_students"] == 0 ? '' : units["total_no_of_students"]}______',
                               style: pw.TextStyle(
                                   fontSize: 6.5,
                                   decoration: pw.TextDecoration.underline),
@@ -529,7 +537,7 @@ class FstlGenHelpers{
                               style: pw.TextStyle(fontSize: 6.5),
                             ),
                             pw.Text(
-                              '___${units["number_of_preparation"]==0?'':units["number_of_preparation"]}______',
+                              '___${units["number_of_preparation"] == 0 ? '' : units["number_of_preparation"]}______',
                               style: pw.TextStyle(
                                   fontSize: 6.5,
                                   decoration: pw.TextDecoration.underline),
@@ -556,24 +564,22 @@ class FstlGenHelpers{
               ),
               pw.SizedBox(height: 1), // Reduced spacing
               generateScheduleTable(schedule),
-
             ],
           );
         },
       ),
     );
-    pdf.addPage(
-        pw.Page(
-            pageFormat: PdfPageFormat.legal,
-            margin: const pw.EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-            build: (pw.Context context) {
-              return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start,children:
-              [
+    pdf.addPage(pw.Page(
+        pageFormat: PdfPageFormat.legal,
+        margin: const pw.EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+        build: (pw.Context context) {
+          return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
                 pw.Container(
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-
                       pw.Text(
                         'SUMMARY',
                         style: pw.TextStyle(
@@ -595,72 +601,76 @@ class FstlGenHelpers{
                                     mainAxisAlignment: pw.MainAxisAlignment.end,
                                     children: [
                                       pw.Text('Equivalent teaching (hrs):',
-                                          style:
-                                          const pw.TextStyle(fontSize: 7.5)),
-                                      pw.Text('_____${emptyIfZero(eqTeaching)}____',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text(
+                                          '_____${emptyIfZero(eqTeaching)}____',
                                           style: const pw.TextStyle(
                                               decoration:
-                                              pw.TextDecoration.underline,
+                                                  pw.TextDecoration.underline,
                                               fontSize: 7.5))
                                     ]),
                                 pw.Row(
                                     mainAxisAlignment: pw.MainAxisAlignment.end,
                                     children: [
                                       pw.Text('Class Prep/Post (hrs):',
-                                          style:
-                                          const pw.TextStyle(fontSize: 7.5)),
-                                      pw.Text('____${emptyIfZero(prepHours)}_____',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text(
+                                          '____${emptyIfZero(prepHours)}_____',
                                           style: const pw.TextStyle(
                                               decoration:
-                                              pw.TextDecoration.underline,
+                                                  pw.TextDecoration.underline,
                                               fontSize: 7.5))
                                     ]),
                                 pw.Row(
                                     mainAxisAlignment: pw.MainAxisAlignment.end,
                                     children: [
                                       pw.Text('Consultation (hrs):',
-                                          style:
-                                          const pw.TextStyle(fontSize: 7.5)),
-                                      pw.Text('____${emptyIfZero(consultationHours)}_____',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text(
+                                          '____${emptyIfZero(consultationHours)}_____',
                                           style: const pw.TextStyle(
                                               decoration:
-                                              pw.TextDecoration.underline,
+                                                  pw.TextDecoration.underline,
                                               fontSize: 7.5))
                                     ]),
                                 pw.Row(
                                     mainAxisAlignment: pw.MainAxisAlignment.end,
                                     children: [
                                       pw.Text('Quasi (hrs):',
-                                          style:
-                                          const pw.TextStyle(fontSize: 7.5)),
-                                      pw.Text('____${emptyIfZero(double.parse(quasi.toString()))}_____',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text(
+                                          '____${emptyIfZero(double.parse(quasi.toString()))}_____',
                                           style: const pw.TextStyle(
                                               decoration:
-                                              pw.TextDecoration.underline,
+                                                  pw.TextDecoration.underline,
                                               fontSize: 7.5))
                                     ]),
                                 pw.Row(
                                     mainAxisAlignment: pw.MainAxisAlignment.end,
                                     children: [
                                       pw.Text('Research and Extension (hrs):',
-                                          style:
-                                          const pw.TextStyle(fontSize: 7.5)),
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
                                       pw.Text('_________',
                                           style: const pw.TextStyle(
                                               decoration:
-                                              pw.TextDecoration.underline,
+                                                  pw.TextDecoration.underline,
                                               fontSize: 7.5))
                                     ]),
                                 pw.Row(
                                     mainAxisAlignment: pw.MainAxisAlignment.end,
                                     children: [
                                       pw.Text('Admin Designation (hrs):',
-                                          style:
-                                          const pw.TextStyle(fontSize: 7.5)),
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
                                       pw.Text('_________',
                                           style: const pw.TextStyle(
                                               decoration:
-                                              pw.TextDecoration.underline,
+                                                  pw.TextDecoration.underline,
                                               fontSize: 7.5))
                                     ]),
                                 pw.Row(
@@ -670,10 +680,11 @@ class FstlGenHelpers{
                                           style: pw.TextStyle(
                                               fontSize: 7.5,
                                               fontWeight: pw.FontWeight.bold)),
-                                      pw.Text('____${emptyIfZero(totalHours)}_____',
+                                      pw.Text(
+                                          '____${emptyIfZero(totalHours)}_____',
                                           style: const pw.TextStyle(
                                               decoration:
-                                              pw.TextDecoration.underline,
+                                                  pw.TextDecoration.underline,
                                               fontSize: 7.5))
                                     ]),
                                 pw.Row(
@@ -683,10 +694,11 @@ class FstlGenHelpers{
                                           style: pw.TextStyle(
                                               fontSize: 7.5,
                                               fontWeight: pw.FontWeight.bold)),
-                                      pw.Text('____${emptyIfZero(totalOverload)}_____',
+                                      pw.Text(
+                                          '____${emptyIfZero(totalOverload)}_____',
                                           style: const pw.TextStyle(
                                               decoration:
-                                              pw.TextDecoration.underline,
+                                                  pw.TextDecoration.underline,
                                               fontSize: 7.5))
                                     ]),
                               ]),
@@ -700,7 +712,6 @@ class FstlGenHelpers{
                 pw.Container(
                   child: pw.Column(
                     children: [
-
                       pw.Text(
                         'I hereby certify that the above information is true and correct',
                         style: pw.TextStyle(
@@ -720,7 +731,10 @@ class FstlGenHelpers{
                                 pw.Text(
                                   '____________${details['faculty_name'].toString().toUpperCase()}_________',
                                   textAlign: pw.TextAlign.center,
-                                  style: pw.TextStyle(fontSize: 7.5,fontWeight: pw.FontWeight.bold,decoration: pw.TextDecoration.underline),
+                                  style: pw.TextStyle(
+                                      fontSize: 7.5,
+                                      fontWeight: pw.FontWeight.bold,
+                                      decoration: pw.TextDecoration.underline),
                                 ),
                                 pw.Text(
                                   'Name and Signature of Faculty',
@@ -735,7 +749,7 @@ class FstlGenHelpers{
                               children: [
                                 pw.Text(
                                   '_______________',
-                                  style:  pw.TextStyle(
+                                  style: pw.TextStyle(
                                       fontSize: 7.5,
                                       fontWeight: pw.FontWeight.bold,
                                       decoration: pw.TextDecoration.underline),
@@ -765,7 +779,8 @@ class FstlGenHelpers{
                             pw.Text(
                               'Recommending Approval:',
                               style: pw.TextStyle(
-                                  fontSize: 7.5, fontWeight: pw.FontWeight.bold),
+                                  fontSize: 7.5,
+                                  fontWeight: pw.FontWeight.bold),
                               textAlign: pw.TextAlign.center,
                             ),
                             pw.SizedBox(height: 5),
@@ -812,7 +827,8 @@ class FstlGenHelpers{
                             pw.Text(
                               'Approved:',
                               style: pw.TextStyle(
-                                  fontSize: 7.5, fontWeight: pw.FontWeight.bold),
+                                  fontSize: 7.5,
+                                  fontWeight: pw.FontWeight.bold),
                               textAlign: pw.TextAlign.center,
                             ),
                             pw.SizedBox(height: 5),
@@ -856,49 +872,68 @@ class FstlGenHelpers{
                   ),
                 ),
               ]);
-            }
-        )
-    );
+        }));
 
     return pdf; // Return the generated PDF
   }
-  static String emptyIfZero(double number)=> number<=0?"":"$number";
-  static double getTotalHours (List<Map<String, dynamic>> schedule){
+
+  static String emptyIfZero(double number) => number <= 0 ? "" : "$number";
+  static double getTotalHours(List<Map<String, dynamic>> schedule) {
     final List<String> days = ["M", "T", "W", "TH", "F", "S"];
-    Map<String, double> totalHoursPerDay = {
-      for (var day in days) day: 0
-    };
+    Map<String, double> totalHoursPerDay = {for (var day in days) day: 0};
 
     for (var entry in schedule) {
       final schedules = entry["schedule"] as List;
       for (var sched in schedules) {
         final day = sched["day"];
-        final startTime = parseTime(sched["time_start"], sched["time_start_daytime"]);
+        final startTime =
+            parseTime(sched["time_start"], sched["time_start_daytime"]);
         final endTime = parseTime(sched["time_end"], sched["time_end_daytime"]);
         totalHoursPerDay[day] = totalHoursPerDay[day]! +
-            endTime.difference(startTime).inMinutes / 30 * 30 / 60; // Half-hour increments
+            endTime.difference(startTime).inMinutes /
+                30 *
+                30 /
+                60; // Half-hour increments
       }
-
-
     }
-    double totalHours =0;
-    for (var day in days){
-      totalHours +=totalHoursPerDay[day]??0;
+    double totalHours = 0;
+    for (var day in days) {
+      totalHours += totalHoursPerDay[day] ?? 0;
     }
     return totalHours;
   }
 
-
 // Function to generate the weekly schedule table
   static pw.Table generateScheduleTable(List<Map<String, dynamic>> schedule) {
     final List<String> timeSlots = [
-      "7:00 AM - 7:30 AM", "7:30 AM - 8:00 AM", "8:00 AM - 8:30 AM", "8:30 AM - 9:00 AM",
-      "9:00 AM - 9:30 AM", "9:30 AM - 10:00 AM", "10:00 AM - 10:30 AM", "10:30 AM - 11:00 AM",
-      "11:00 AM - 11:30 AM", "11:30 AM - 12:00 PM", "12:00 PM - 12:30 PM", "12:30 PM - 1:00 PM",
-      "1:00 PM - 1:30 PM", "1:30 PM - 2:00 PM", "2:00 PM - 2:30 PM", "2:30 PM - 3:00 PM",
-      "3:00 PM - 3:30 PM", "3:30 PM - 4:00 PM", "4:00 PM - 4:30 PM", "4:30 PM - 5:00 PM",
-      "5:00 PM - 5:30 PM", "5:30 PM - 6:00 PM", "6:00 PM - 6:30 PM", "6:30 PM - 7:00 PM",
-      "7:00 PM - 7:30 PM", "7:30 PM - 8:00 PM", "8:00 PM - 8:30 PM", "8:30 PM - 9:00 PM"
+      "7:00 AM - 7:30 AM",
+      "7:30 AM - 8:00 AM",
+      "8:00 AM - 8:30 AM",
+      "8:30 AM - 9:00 AM",
+      "9:00 AM - 9:30 AM",
+      "9:30 AM - 10:00 AM",
+      "10:00 AM - 10:30 AM",
+      "10:30 AM - 11:00 AM",
+      "11:00 AM - 11:30 AM",
+      "11:30 AM - 12:00 PM",
+      "12:00 PM - 12:30 PM",
+      "12:30 PM - 1:00 PM",
+      "1:00 PM - 1:30 PM",
+      "1:30 PM - 2:00 PM",
+      "2:00 PM - 2:30 PM",
+      "2:30 PM - 3:00 PM",
+      "3:00 PM - 3:30 PM",
+      "3:30 PM - 4:00 PM",
+      "4:00 PM - 4:30 PM",
+      "4:30 PM - 5:00 PM",
+      "5:00 PM - 5:30 PM",
+      "5:30 PM - 6:00 PM",
+      "6:00 PM - 6:30 PM",
+      "6:30 PM - 7:00 PM",
+      "7:00 PM - 7:30 PM",
+      "7:30 PM - 8:00 PM",
+      "8:00 PM - 8:30 PM",
+      "8:30 PM - 9:00 PM"
     ];
 
     final List<String> days = ["M", "T", "W", "TH", "F", "S"];
@@ -924,7 +959,12 @@ class FstlGenHelpers{
     }
 
     return pw.Table(
-      border: pw.TableBorder(verticalInside: pw.BorderSide(color: PdfColors.black),left: pw.BorderSide(color: PdfColors.black), right: pw.BorderSide(color: PdfColors.black),bottom: pw.BorderSide(color: PdfColors.black),top:pw.BorderSide(color: PdfColors.black)),
+      border: pw.TableBorder(
+          verticalInside: pw.BorderSide(color: PdfColors.black),
+          left: pw.BorderSide(color: PdfColors.black),
+          right: pw.BorderSide(color: PdfColors.black),
+          bottom: pw.BorderSide(color: PdfColors.black),
+          top: pw.BorderSide(color: PdfColors.black)),
       columnWidths: {
         0: pw.FlexColumnWidth(1.5),
         for (int i = 1; i <= days.length; i++) i: pw.FlexColumnWidth(0.8),
@@ -934,15 +974,21 @@ class FstlGenHelpers{
         pw.TableRow(
           children: [
             pw.Container(
-              decoration: pw.BoxDecoration(border: pw.TableBorder.all(color: PdfColors.black)),
+              decoration: pw.BoxDecoration(
+                  border: pw.TableBorder.all(color: PdfColors.black)),
               alignment: pw.Alignment.center,
-              child: pw.Text("TIME", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
+              child: pw.Text("TIME",
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold, fontSize: 8)),
             ),
             ...fullDays.map((day) => pw.Container(
-              alignment: pw.Alignment.center,
-              decoration: pw.BoxDecoration(border: pw.TableBorder.all(color: PdfColors.black)),
-              child: pw.Text(day, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
-            )),
+                  alignment: pw.Alignment.center,
+                  decoration: pw.BoxDecoration(
+                      border: pw.TableBorder.all(color: PdfColors.black)),
+                  child: pw.Text(day,
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                )),
           ],
         ),
         // Time Slot Rows
@@ -953,13 +999,16 @@ class FstlGenHelpers{
             final matchingSubjects = schedule.where((entry) {
               return (entry["schedule"] as List).any((s) {
                 if (s["day"] == day) {
-                  final startTime = parseTime(s["time_start"], s["time_start_daytime"]);
-                  final endTime = parseTime(s["time_end"], s["time_end_daytime"]);
+                  final startTime =
+                      parseTime(s["time_start"], s["time_start_daytime"]);
+                  final endTime =
+                      parseTime(s["time_end"], s["time_end_daytime"]);
                   final slotStart = parseTime(
                     timeSlot.split(" - ")[0],
                     timeSlot.contains("AM") ? "AM" : "PM",
                   );
-                  return (slotStart.isAtSameMomentAs(startTime) || slotStart.isAfter(startTime)) &&
+                  return (slotStart.isAtSameMomentAs(startTime) ||
+                          slotStart.isAfter(startTime)) &&
                       slotStart.isBefore(endTime);
                 }
                 return false;
@@ -970,83 +1019,99 @@ class FstlGenHelpers{
             if (matchingSubjects.isNotEmpty) {
               final firstSubject = matchingSubjects.first;
               final subjectKey = "${firstSubject["subject"]}-${day}";
-              final subjectColor = subjectColors[firstSubject["subject"]] ?? PdfColors.white;
-              final section =firstSubject["section"] ?? '';
-              final subject =firstSubject["room"] ?? '';
+              final subjectColor =
+                  subjectColors[firstSubject["subject"]] ?? PdfColors.white;
+              final section = firstSubject["section"] ?? '';
+              final subject = firstSubject["room"] ?? '';
               final info = [
                 firstSubject["subject_code"] ?? 'Unknown',
                 firstSubject["subject"] ?? 'No Subject',
-                section==''?"__":section,
-                subject==''?"_":subject,
+                section == '' ? "__" : section,
+                subject == '' ? "_" : subject,
               ];
               if (!blacklist.contains(subjectKey)) {
                 blacklist.add(subjectKey);
 
-
-                return {"content": info.join('\n'), "color": subjectColor,};
-              }
-              else{
+                return {
+                  "content": info.join('\n'),
+                  "color": subjectColor,
+                };
+              } else {
                 return {"content": "_", "color": subjectColor};
               }
             }
             return {"content": "", "color": PdfColors.white};
           }).toList();
-          final toSort =[...cellContents];
-         toSort.sort((a,b){
+          final toSort = [...cellContents];
+          toSort.sort((a, b) {
             final bContent = b['content'] as String;
             final aContent = a['content'] as String;
-            return bContent.length-aContent.length;
+            return bContent.length - aContent.length;
           });
 
-             maxInfo = toSort[0]['content'] as String;
+          maxInfo = toSort[0]['content'] as String;
 
           // Adjust other cells to match the maximum content size
           return pw.TableRow(
             children: [
               pw.Container(
-                decoration: pw.BoxDecoration(border: pw.TableBorder(top: pw.BorderSide(color: PdfColors.black))),
+                decoration: pw.BoxDecoration(
+                    border: pw.TableBorder(
+                        top: pw.BorderSide(color: PdfColors.black))),
                 padding: pw.EdgeInsets.only(left: 10),
-                child: pw.Text(timeSlot.replaceAll(RegExp(r' AM| PM'), ''), style: pw.TextStyle(fontSize: 8)),
+                child: pw.Text(timeSlot.replaceAll(RegExp(r' AM| PM'), ''),
+                    style: pw.TextStyle(fontSize: 8)),
                 alignment: pw.Alignment.centerLeft,
               ),
               ...cellContents.map((cellContent) {
                 final content = cellContent["content"] as String;
                 final color = cellContent["color"] as PdfColor;
 
-                if(content.isNotEmpty){
-                  if (content!="_") {
-                    final richContent =  content.split("\n");
+                if (content.isNotEmpty) {
+                  if (content != "_") {
+                    final richContent = content.split("\n");
                     return pw.Container(
                       alignment: pw.Alignment.center,
                       padding: pw.EdgeInsets.all(0.5),
                       color: color,
-                      child: pw.RichText(text:
-                      pw.TextSpan(
-                          children:[...richContent.map((data)=>pw.TextSpan(text:richContent[richContent.length-1]!=data?data+"\n":data,style: pw.TextStyle(color: data=="_"||data=="__"?color:PdfColors.black,fontSize: 5)))]
-                      ),
+                      child: pw.RichText(
+                        text: pw.TextSpan(children: [
+                          ...richContent.map((data) => pw.TextSpan(
+                              text: richContent[richContent.length - 1] != data
+                                  ? data + "\n"
+                                  : data,
+                              style: pw.TextStyle(
+                                  color: data == "_" || data == "__"
+                                      ? color
+                                      : PdfColors.black,
+                                  fontSize: 5)))
+                        ]),
                         textAlign: pw.TextAlign.center,
                       ),
                     );
                   } else {
-
                     return pw.Container(
                       padding: pw.EdgeInsets.all(0.5),
                       color: color,
                       child: pw.Text(
-                        [..."${maxInfo}".split("\n").map((data)=>List.generate(data.length, (_) => "*").join(""))].join('\n'),
-                        style: pw.TextStyle(color: color, fontSize: maxInfo == '_'?8:5),
+                        [
+                          ..."${maxInfo}".split("\n").map((data) =>
+                              List.generate(data.length, (_) => "*").join(""))
+                        ].join('\n'),
+                        style: pw.TextStyle(
+                            color: color, fontSize: maxInfo == '_' ? 8 : 5),
                         textAlign: pw.TextAlign.center,
                       ),
                     );
                   }
-                }
-                else{
+                } else {
                   return pw.Container(
-
-                    decoration: pw.BoxDecoration(border: pw.TableBorder.all()),
+                    decoration: pw.BoxDecoration(
+                        border: pw.TableBorder(
+                            top: pw.BorderSide(color: PdfColors.black))),
+                    child: pw.Text("_", style: pw.TextStyle(color: color)),
                   );
                 }
-
               }),
             ],
           );
@@ -1055,17 +1120,16 @@ class FstlGenHelpers{
     );
   }
 
-
-
-
-
 // Function to calculate total subject hours
 
-
-  static PdfColor pdfColorFromHsl(double hue, double saturation, double lightness, [double alpha = 1.0]) {
+  static PdfColor pdfColorFromHsl(
+      double hue, double saturation, double lightness,
+      [double alpha = 1.0]) {
     assert(hue >= 0 && hue <= 1, "Hue must be between 0 and 1");
-    assert(saturation >= 0 && saturation <= 1, "Saturation must be between 0 and 1");
-    assert(lightness >= 0 && lightness <= 1, "Lightness must be between 0 and 1");
+    assert(saturation >= 0 && saturation <= 1,
+        "Saturation must be between 0 and 1");
+    assert(
+        lightness >= 0 && lightness <= 1, "Lightness must be between 0 and 1");
     assert(alpha >= 0 && alpha <= 1, "Alpha must be between 0 and 1");
 
     double f(double n) {
@@ -1073,12 +1137,14 @@ class FstlGenHelpers{
       final a = saturation * (lightness < 0.5 ? lightness : 1 - lightness);
 
       // Ensure the range for clamp is valid
-      final lowerBound = (k - 3).clamp(0, 12);  // Make sure the lower bound is within range
-      final upperBound = (9 - k).clamp(0, 12);  // Make sure the upper bound is within range
+      final lowerBound =
+          (k - 3).clamp(0, 12); // Make sure the lower bound is within range
+      final upperBound =
+          (9 - k).clamp(0, 12); // Make sure the upper bound is within range
 
-      return lightness - a * (lowerBound < upperBound ? lowerBound : upperBound);
+      return lightness -
+          a * (lowerBound < upperBound ? lowerBound : upperBound);
     }
-
 
     final red = f(0);
     final green = f(8);
@@ -1087,15 +1153,13 @@ class FstlGenHelpers{
     return PdfColor(red, green, blue, alpha);
   }
 
-
-
   static DateTime parseTime(String time, String period) {
     try {
       // Validate period
       if (period != "AM" && period != "PM") {
         throw FormatException("Invalid period: $period. Must be 'AM' or 'PM'.");
       }
-      time=time.replaceAll("AM", "").replaceAll("PM", "").trim();
+      time = time.replaceAll("AM", "").replaceAll("PM", "").trim();
 
       // Normalize the time format to HH:mm
       final List<String> parts = time.split(":");
@@ -1121,18 +1185,16 @@ class FstlGenHelpers{
 
       return DateTime(0, 1, 1, hours, minutes); // Using a dummy date
     } catch (e) {
-      throw FormatException("Error parsing time: $e args = time:$time period:$period");
+      throw FormatException(
+          "Error parsing time: $e args = time:$time period:$period");
     }
   }
 
-
-
-
   static pw.Widget paddedText(String text,
       {double fontSize = 7.5,
-        pw.TextAlign align = pw.TextAlign.left,
-        insets = 3,
-        bold = false}) {
+      pw.TextAlign align = pw.TextAlign.left,
+      insets = 3,
+      bold = false}) {
     return pw.Padding(
       padding: pw.EdgeInsets.all(double.parse(insets.toString())),
       child: pw.Text(
