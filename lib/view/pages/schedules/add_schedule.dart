@@ -36,10 +36,12 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
   String selectedsemester = "";
   bool isLoading = false;
   PDFDoc? _pdfDoc;
-  var data = [];
+  var data = {};
+  var scheduleData = [];
   var number_of_students = [];
   var details ={};
   var units = {};
+  var creditAndLoad ={};
   var suggestedSchedules=[];
   var allSchedules =[];
   var date = '';
@@ -88,12 +90,20 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         "status": false, // Status (false indicates it's a new entry)
         "school_year": school_year.text, // School year input from the text field
         "semester": selectedsemester, // Selected semester
-        "schedule": jsonEncode(data), // Schedule data (encoded to JSON format)
+        "schedule": jsonEncode(scheduleData), // Schedule data (encoded to JSON format)
         "suggested_schedule":jsonEncode(suggestedSchedules),
         "details":jsonEncode(details),
         "units":jsonEncode(units),
         "date":date,
-        "quasi":quasiHours
+        "quasi":quasiHours,
+        "totals":jsonEncode(
+            {
+          "total_subject_credit": data['total_subject_credit'],
+          "total_faculty_credit": data['total_faculty_credit'],
+          "all_total_students": data['all_total_students'],
+              "total_weekly_hours":data['total_weekly_hours'],
+        }),
+        "credit_and_load":jsonEncode(creditAndLoad)
       },
       "schedules", // Save to the 'schedules' collection
     );
@@ -107,7 +117,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
     }, "notifications"); // Save notification in the 'notifications' collection
 
     // Reset data and form fields after the schedule is uploaded
-    data = []; // Clear the schedule data
+    data = {}; // Clear the schedule data
     selectedsemester = ""; // Reset the selected semester
     school_year.text = ""; // Clear the school year input field
 
@@ -148,84 +158,66 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         var result=await uploadPdfToFlaskApi(filePath, apiUrl);
         setState(() {
           data = result;
+          scheduleData = List<Map<String,dynamic>>.from(data['schedule']);
           isLoading = false;
         });
       }catch (e){
         debugPrint("Error: $e");
       }
+      print("DATA FROM FLASK $data");
+      print("DATA FROM FLASK $scheduleData");
 
       print("################################");
-      getRelevantText(res);
+      setState((){
+        details=extractTeacherDetails(res);
+        units =extractKeyValues(res);
+        creditAndLoad =extractFacultyCreditAndLoad(res);
+      });
+
+      Map<String, double> stringMap = Map<String, double>.from(units);
+      allSchedules=[];
+      suggestedSchedules = generateSuggestedSchedule(stringMap,List<Map<String,dynamic>>.from(scheduleData),quasiHours );
+
+
+      setState((){
+        allSchedules.addAll(scheduleData);
+        allSchedules.addAll(suggestedSchedules);
+      });
+
+
+
+
+      //
+      // for (var schedule in perLine) {
+      //   var res = {};
+      //   if (schedule == perLine.last) {
+      //     res = extractData(schedule, true);
+      //   } else {
+      //     res = extractData(schedule, false);
+      //   }
+      //   data.add(res);
+      // }
+      //
+      // for (var i = 0; i < data.length; i++) {
+      //   data[i]["number_of_students"] = number_of_students[i];
+      // }
+
+      print("DATA");
+      print("$data");
+      print("$details");
+      print("$units");
+      print("$creditAndLoad");
+      //print("$date");
+      print("test :$suggestedSchedules");
+      print("test");
+
+      print("################################");
+      print('process completed');
 
       setState(() {});
     }
   }
 
-  getRelevantText(text) {
-    var perLine = text.split("\n");
-    var startLine = 0;
-    var endLine = 0;
-
-    for (int i = 0; i < perLine.length; i++) {
-      if (perLine[i].contains("No. Of Students") && startLine == 0) {
-        startLine = i;
-      }
-      if (perLine[i].contains("TIME MON TUE WED THURS FRI SAT") && endLine == 0) {
-        endLine = i;
-      }
-    }
-
-
-
-    perLine = perLine.sublist(startLine + 1, endLine);
-    perLine = perLine.join(' ');
-    perLine = separateSchedules(perLine);
-    setState(() {
-
-      details=extractTeacherDetails(text);
-      units =extractKeyValues(text);
-      date =extractDate(text);
-      //data = processScheduleData(text);
-    });
-    Map<String, int> stringMap = Map<String, int>.from(units);
-    List<Map<String,dynamic>> schedules = List<Map<String,dynamic>>.from(data);
-    setState(() {
-      allSchedules=[];
-      suggestedSchedules = generateSuggestedSchedule(stringMap,schedules,quasiHours );
-    });
-    setState((){
-       allSchedules.addAll(data);
-       allSchedules.addAll(suggestedSchedules);
-    });
-
-
-
-
-    //
-    // for (var schedule in perLine) {
-    //   var res = {};
-    //   if (schedule == perLine.last) {
-    //     res = extractData(schedule, true);
-    //   } else {
-    //     res = extractData(schedule, false);
-    //   }
-    //   data.add(res);
-    // }
-    //
-    // for (var i = 0; i < data.length; i++) {
-    //   data[i]["number_of_students"] = number_of_students[i];
-    // }
-
-    print("DATA");
-    print("$data");
-    print("$details");
-    print("$units");
-    print("$date");
-    print("test :$suggestedSchedules");
-    print("test");
-
-    print("################################");
-  }
 
 // Helper function to convert a string to snake_case
   String toSnakeCase(String input) {
@@ -260,70 +252,107 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
   Map<String, String> extractTeacherDetails(String text) {
     Map<String, String> teacherDetails = {};
 
-    // Normalize the text to handle inconsistent formatting
-    text = text.replaceAll('\n', ' ').replaceAll(':', '');
+    try {
+      // Normalize text by removing newlines, extra spaces, and unnecessary colons
+      text = text.replaceAll('\n', ' ').replaceAll(':', '').replaceAll(RegExp(r'\s+'), ' ');
 
-    // Define possible keys and extract corresponding values
-    RegExp facultyName = RegExp(r'Faculty Name\s*([A-Za-z]+\s+[A-Za-z]+\s+[A-Za-z]\.\s+[A-Za-z]+)');
-    RegExp academicRank = RegExp(r'Academic Rank\s*([A-Z]+\s+\d)\b');
-    RegExp campusCollege = RegExp(r'Campus College\s+([A-Za-z]+)');
-    RegExp contactNo = RegExp(r'Contact No\.\s+(\d+)');
-    RegExp emailAddress = RegExp(r'Email Address\s+(\S+)');
-    RegExp department = RegExp(r'Department\s+([A-Za-z]+)');
+      // Define regex patterns
+      RegExp facultyName = RegExp(r'Faculty Name\s*([\w\s]+?)(?=\s+Rank)', caseSensitive: false);
+      RegExp rank = RegExp(r'Rank\s*([\w\s\d]+?)(?=\s+Major Discipline)', caseSensitive: false);
+      RegExp majorDiscipline = RegExp(r'Major Discipline\s*([\w\s]+)', caseSensitive: false);
+      RegExp designation = RegExp(r'Designation\s*([\w\s\d]+?)(?=\s+Status)', caseSensitive: false);
+      RegExp status = RegExp(r'Status\s*([\w\s-]+?)(?=\s+Email Address|$)', caseSensitive: false); // Fixes "Not Found"
+      RegExp emailAddress = RegExp(r'Email Address\s*([\w\.\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]+)', caseSensitive: false); // Ensures full email is captured
+      RegExp campusCollege = RegExp(r'COLLEGE OF\s*([\w\s]+?)\s*FACULTY LOAD', caseSensitive: false);
 
-    // Extract using regex
-    teacherDetails['Faculty Name'] = facultyName.firstMatch(text)?.group(1) ?? 'Not Found';
-    teacherDetails['Academic Rank'] = academicRank.firstMatch(text)?.group(1) ?? 'Not Found';
-    teacherDetails['Campus College'] = campusCollege.firstMatch(text)?.group(1) ?? 'Not Found';
-    teacherDetails['Contact No.'] = contactNo.firstMatch(text)?.group(1) ?? 'Not Found';
-    teacherDetails['Email Address'] = emailAddress.firstMatch(text)?.group(1) ?? 'Not Found';
-    teacherDetails['Department'] = department.firstMatch(text)?.group(1) ?? 'Not Found';
+      // Extract using regex
+      teacherDetails['faculty_name'] = facultyName.firstMatch(text)?.group(1)?.trim() ?? 'Not Found';
+      teacherDetails['rank'] = rank.firstMatch(text)?.group(1)?.trim() ?? 'Not Found';
+      teacherDetails['major_discipline'] = majorDiscipline.firstMatch(text)?.group(1)?.trim() ?? 'Not Found';
+      teacherDetails['designation'] = designation.firstMatch(text)?.group(1)?.trim() ?? 'Not Found';
+      teacherDetails['status'] = status.firstMatch(text)?.group(1)?.trim() ?? 'Not Found'; // Now captures "Full-Time"
+      teacherDetails['email_address'] = emailAddress.firstMatch(text)?.group(1)?.trim() ?? 'Not Found'; // Ensures full email
+      teacherDetails['campus_college'] = campusCollege.firstMatch(text)?.group(1)?.trim() ?? 'Not Found'; // Extracts college name
 
-    // Convert keys to snake_case
-    return teacherDetails.map((key, value) => MapEntry(toSnakeCase(key), value));
-  }
-
-  Map<String, int> extractKeyValues(String extractedText) {
-    // Define the keys to search for
-    const keys = [
-      "Academic Equivalent Units",
-      "Administrative/Research/Extension Units",
-      "Total Equivalent Units",
-      "Total Contact Hours",
-      "Total No. Of Students",
-      "Number of Preparation"
-    ];
-
-    // Initialize a map to store the results with default values set to 0
-    Map<String, int> result = {
-      for (var key in keys) key: 0,
-    };
-
-    // Process the extracted text line by line
-    List<String> lines = extractedText.split('\n');
-
-    for (String line in lines) {
-      for (String key in keys) {
-        if (line.contains(key)) {
-          // Extract the value after the colon
-          RegExp valuePattern = RegExp(r':\s*(\d+)?');
-          Match? match = valuePattern.firstMatch(line);
-
-          if (match != null && match.group(1) != null) {
-            result[key] = int.parse(match.group(1)!);
-          }
-          break; // No need to check other keys for this line
-        }
-      }
+    } catch (e) {
+      print('Error extracting teacher details: $e');
     }
 
-    // Convert keys to snake_case
-    return result.map((key, value) => MapEntry(toSnakeCase(key), value));
+    return teacherDetails;
   }
+  Map<String, String> extractFacultyCreditAndLoad(String text) {
+    Map<String, String> facultyLoadDetails = {};
+
+    try {
+      // Normalize text carefully: Preserve meaningful spacing and dashes
+      text = text.replaceAll('\n', ' ') // Replace newlines with space
+          .replaceAll(':', '') // Remove colons
+          .replaceAll(RegExp(r'\s+'), ' ') // Normalize spaces
+          .replaceAll(RegExp(r'-\s-+'), ' - '); // Handle long dashes
+
+      // Debugging: Print cleaned text
+      print("Cleaned Text: $text");
+
+      // More flexible regex patterns
+      RegExp facultyCredit = RegExp(r'FACULTY CREDIT [-\s]+(\d+(\.\d+)?)', caseSensitive: false);
+      RegExp designationLoadReleased = RegExp(r'DESIGNATION, LOAD RELEASED [-\s]+(\d+(\.\d+)?)', caseSensitive: false);
+
+      // Extract values
+      facultyLoadDetails['faculty_credit'] = facultyCredit.firstMatch(text)?.group(1)?.trim() ?? 'Not Found';
+      facultyLoadDetails['designation_load_released'] = designationLoadReleased.firstMatch(text)?.group(1)?.trim() ?? 'Not Found';
+
+    } catch (e) {
+      print('Error extracting faculty credit and load released: $e');
+    }
+
+    return facultyLoadDetails;
+  }
+
+
+
+
+
+
+  Map<String, double> extractKeyValues(String extractedText) {
+    Map<String, double> result = {};
+    try {
+      // Normalize text: remove extra spaces and ensure consistent formatting
+      extractedText = extractedText.replaceAll('\n', ' ').replaceAll(RegExp(r'\s+'), ' ');
+
+      // Define the keys to search for
+      Map<String, RegExp> patterns = {
+        "number_of_preparation": RegExp(r'Number of Preparation\s*=\s*([\d,.]+)'),
+        "average_class_size": RegExp(r'Average Class Size\s*=\s*([\d,.]+)'),
+        "average_teaching_units": RegExp(r'Average Teaching Units\s*=\s*([\d,.]+)'),
+        "number_of_classes": RegExp(r'Number of Classes\s*=\s*([\d,.]+)'),
+        "total_class_hour_per_week": RegExp(r'Total Class Hour per week\s*=\s*([\d,.]+)'),
+        "average_class_hour_per_day": RegExp(r'Average Class Hour per day\s*=\s*([\d,.]+)')
+      };
+
+      // Extract values using regex
+      patterns.forEach((key, pattern) {
+        try {
+          Match? match = pattern.firstMatch(extractedText);
+          if (match != null && match.group(1) != null) {
+            result[key] = double.parse(match.group(1)!.replaceAll(',', '.'));
+          } else {
+            result[key] = 0.0; // Default to 0 if not found
+          }
+        } catch (e) {
+          print('Error parsing value for $key: $e');
+          result[key] = 0.0;
+        }
+      });
+    } catch (e) {
+      print('Error extracting key values: $e');
+    }
+    return result;
+  }
+
 
 
   List<Map<String, dynamic>> generateSuggestedSchedule(
-      Map<String, int> units,
+      Map<String, double> units,
       List<Map<String, dynamic>> existingSchedule,
       int quasiHours) {
 
@@ -333,7 +362,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         'M': 0,
         'T': 0,
         'W': 0,
-        'TH': 0,
+        'Th': 0,
         'F': 0,
         'S': 0,
       };
@@ -406,7 +435,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       return true;
     }
     List<Map<String, dynamic>> preparationSchedules = [];
-    int preparationHoursNeeded = units['number_of_preparation']! * 2;
+    double preparationHoursNeeded = units['number_of_preparation']! * 2;
     for (var day in sortWeekByLeastOccupied([...existingSchedule,])) {
       if (preparationHoursNeeded <= 0) break;
 
@@ -699,7 +728,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
             lastRelIndex = j + 3; // Update the last relevant index after finding the end time
 
             // If a valid day is found, add the schedule entry to the list
-            if (["M", "T", "W", "TH", "F", "S"].contains(day)) {
+            if (["M", "T", "W", "Th", "F", "S"].contains(day)) {
               schedules.add({
                 "day": day, // Day of the week
                 "time_start": text.substring(dayIndex, timeStart).replaceAll(" ", ""), // Start time
@@ -709,15 +738,15 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
               });
             } else {
               // If the day contains "TH", handle it separately
-              if (day.contains("TH")) {
+              if (day.contains("Th")) {
                 schedules.add({
-                  "day": "TH", // Special case for Thursday (TH)
+                  "day": "Th", // Special case for Thursday (TH)
                   "time_start": text.substring(dayIndex, timeStart).replaceAll(" ", ""),
                   "time_start_daytime": text.substring(timeStart, timeStart + 2).replaceAll(" ", ""),
                   "time_end": text.substring(timeStart + 3, timeEnd).replaceAll(" ", ""),
                   "time_end_daytime": text.substring(timeEnd, timeEnd + 2).replaceAll(" ", "")
                 });
-                day = day.replaceAll("TH", ""); // Remove "TH" from the day string
+                day = day.replaceAll("Th", ""); // Remove "TH" from the day string
               }
 
               // For all other valid days (M, T, W, F, S), add them to the schedule
@@ -835,7 +864,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
     return scheduleList;
   }
-  Future<List<dynamic>> uploadPdfToFlaskApi(String filePath, Uri apiUrl) async {
+  Future<Map<String,dynamic>> uploadPdfToFlaskApi(String filePath, Uri apiUrl) async {
     try {
       // Open the file
       File pdfFile = File(filePath);
@@ -866,12 +895,12 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         return jsonDecode(responseBody);
       } else {
         debugPrint("Failed to upload: ${response.statusCode}");
-        return [];
+        return {};
 
       }
     } catch (e) {
       debugPrint("Error uploading PDF: $e");
-      return [];
+      return {};
 
     }
   }
@@ -1021,7 +1050,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                                   side: BorderSide(color: Colors.grey.shade300),
                                 ),
                                 title: Text(
-                                  "${allSchedules[index]['subject_code']} ${allSchedules[index]['section']!=""?"(${allSchedules[index]['section']})":""}",
+                                  '${allSchedules[index]['subject_code']} ${allSchedules[index]['days']!=""?"(${allSchedules[index]['days']})":""}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16.0,
@@ -1029,7 +1058,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                                   ),
                                 ),
                                 subtitle: Text(
-                                  '${allSchedules[index]['subject']} ${allSchedules[index]['days']!=""?"(${allSchedules[index]['days']})":""}',
+                                  '${allSchedules[index]['subject']}',
                                   style: TextStyle(
                                     fontSize: 14.0,
                                     color: Colors.black54,

@@ -30,7 +30,7 @@ class _PreviewSchedulesPageState extends State<PreviewSchedulesPage> {
     "M": "Monday",
     "T": "Tuesday",
     "W": "Wednesday",
-    "TH": "Thursday",
+    "Th": "Thursday",
     "F": "Friday",
     "S": "Saturday",
   };
