@@ -151,7 +151,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
           throw Exception("Failed to retrieve the file path.");
         }
 
-        Uri apiUrl = Uri.parse("https://octopus-app-mb7ca.ondigitalocean.app/upload"); // Replace with your Flask API URL
+        Uri apiUrl = Uri.parse("http://139.59.117.201:8000/upload"); // Replace with your Flask API URL
 
         // Call the upload function
 
@@ -169,9 +169,9 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
       print("################################");
       setState((){
-        details=extractTeacherDetails(res);
-        units =extractKeyValues(res);
-        creditAndLoad =extractFacultyCreditAndLoad(res);
+        details=data['details'];
+        units =data['units'];
+        creditAndLoad = data["credit_and_load"];
       });
 
       Map<String, double> stringMap = Map<String, double>.from(units);
@@ -307,12 +307,6 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
     return facultyLoadDetails;
   }
-
-
-
-
-
-
   Map<String, double> extractKeyValues(String extractedText) {
     Map<String, double> result = {};
     try {

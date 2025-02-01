@@ -23,7 +23,7 @@ class _EditSubjectScreenState extends State<EditSubjectScreen> {
     "M": "Monday",
     "T": "Tuesday",
     "W": "Wednesday",
-    "TH": "Thursday",
+    "Th": "Thursday",
     "F": "Friday",
     "S": "Saturday",
   };

@@ -36,7 +36,7 @@ class _HomeState extends State<ViewSchedule> {
   late List<Map<String,dynamic>> selectedSchedule;
   // PDF document instance for extracting text
   List timetableData = [];
-  final List<String> weekDays = ["M", "T", "W", "TH", "F", "S", "SU"];
+  final List<String> weekDays = ["M", "T", "W", "Th", "F", "S", "SU"];
   List<TimePlannerTask> tasks = [];
 
 

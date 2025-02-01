@@ -1,3 +1,4 @@
+
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 
 import 'dart:convert';
@@ -45,7 +46,7 @@ class _HomeState extends State<Home> {
   late DocumentSnapshot selectedSchedule;
   // PDF document instance for extracting text
   List timetableData = [];
-  final List<String> weekDays = ["M", "T", "W", "TH", "F", "S", "SU"];
+  final List<String> weekDays = ["M", "T", "W", "Th", "F", "S", "SU"];
   List<TimePlannerTask> tasks = [];
 
   // Loads user data from Firestore based on the logged-in user's UID.
@@ -263,30 +264,30 @@ class _HomeState extends State<Home> {
             ),
             _userData.role == 'admin'
                 ? ListTile(
-                    leading: const Icon(Icons.group_outlined), // Icon for the profile
-                    title: const Text('Faculties'),
-                    onTap: () async {
-                      Get.to(UsersPage(uid: widget.user.uid, role: _userData.role));
-                    },
-                  )
+              leading: const Icon(Icons.group_outlined), // Icon for the profile
+              title: const Text('Faculties'),
+              onTap: () async {
+                Get.to(UsersPage(uid: widget.user.uid, role: _userData.role));
+              },
+            )
                 : SizedBox(),
             _userData.role != 'admin'
                 ? ListTile(
-                    leading: const Icon(Icons.file_present_outlined), // Icon for the profile
-                    title: const Text('Generate Reports'),
-                    onTap: () async {
-                      if (tasks.length == 0) {
-                        _scaffoldKey.currentState!.openEndDrawer();
-                        Modal().snack(context, message: "Can't generate, you dont have any approved schedule!");
-                      } else {
-                        Get.to(GenerateReportsPage(
-                          uid: widget.user.uid,
-                          role: _userData.role,
-                          schedule: selectedSchedule,
-                        ));
-                      }
-                    },
-                  )
+              leading: const Icon(Icons.file_present_outlined), // Icon for the profile
+              title: const Text('Generate Reports'),
+              onTap: () async {
+                if (tasks.length == 0) {
+                  _scaffoldKey.currentState!.openEndDrawer();
+                  Modal().snack(context, message: "Can't generate, you dont have any approved schedule!");
+                } else {
+                  Get.to(GenerateReportsPage(
+                    uid: widget.user.uid,
+                    role: _userData.role,
+                    schedule: selectedSchedule,
+                  ));
+                }
+              },
+            )
                 : SizedBox(),
             ListTile(
               leading: const Icon(Icons.notifications_outlined), // Icon for the profile
@@ -320,58 +321,58 @@ class _HomeState extends State<Home> {
       ),
       body: (_userData.role == "admin")
           ? SizedBox(
-              width: double.infinity,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TopImage(
-                    imgPath: "assets/images/faculty_load.png",
-                    size: 200,
-                  ),
-                  Text(
-                    "Welcome, ${_userData.name}",
-                    style: TextStyle(fontSize: 25),
-                  ),
-                ],
-              ),
-            )
-          : TimePlanner(
-              // time will be start at this hour on table
-              startHour: 6,
-              // time will be end at this hour on table
-              endHour: 23,
-              currentTimeAnimation: false,
-              style: TimePlannerStyle(
-                  // backgroundColor: primaryColor,
-                  ),
-              // each header is a column and a day
-              headers: [
-                TimePlannerTitle(
-                  title: "Monday",
-                  // titleStyle: TextStyle(color: primaryColor),
-                ),
-                TimePlannerTitle(
-                  title: "Tuesday",
-                ),
-                TimePlannerTitle(
-                  title: "Wednesday",
-                ),
-                TimePlannerTitle(
-                  title: "Thursday",
-                ),
-                TimePlannerTitle(
-                  title: "Friday",
-                ),
-                TimePlannerTitle(
-                  title: "Saturday",
-                ),
-                TimePlannerTitle(
-                  title: "Sunday",
-                ),
-              ],
-              // List of task will be show on the time planner
-              tasks: tasks,
+        width: double.infinity,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TopImage(
+              imgPath: "assets/images/faculty_load.png",
+              size: 200,
             ),
+            Text(
+              "Welcome, ${_userData.name}",
+              style: TextStyle(fontSize: 25),
+            ),
+          ],
+        ),
+      )
+          : TimePlanner(
+        // time will be start at this hour on table
+        startHour: 6,
+        // time will be end at this hour on table
+        endHour: 23,
+        currentTimeAnimation: false,
+        style: TimePlannerStyle(
+          // backgroundColor: primaryColor,
+        ),
+        // each header is a column and a day
+        headers: [
+          TimePlannerTitle(
+            title: "Monday",
+            // titleStyle: TextStyle(color: primaryColor),
+          ),
+          TimePlannerTitle(
+            title: "Tuesday",
+          ),
+          TimePlannerTitle(
+            title: "Wednesday",
+          ),
+          TimePlannerTitle(
+            title: "Thursday",
+          ),
+          TimePlannerTitle(
+            title: "Friday",
+          ),
+          TimePlannerTitle(
+            title: "Saturday",
+          ),
+          TimePlannerTitle(
+            title: "Sunday",
+          ),
+        ],
+        // List of task will be show on the time planner
+        tasks: tasks,
+      ),
     );
   }
 }

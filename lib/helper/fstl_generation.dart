@@ -131,7 +131,7 @@ class FstlGenHelpers {
 
               pw.Center(
                 child: pw.Text(
-                    'COLLEGE OF${details["campus_college"]}\nFACULTY LOAD\n${getOrdinalFromString(semester).toUpperCase()} SEMESTER, SCHOOL YEAR $schoolYear',
+                    'COLLEGE OF ${details["campus_college"]}\nFACULTY LOAD\n${getOrdinalFromString(semester).toUpperCase()} SEMESTER, SCHOOL YEAR $schoolYear',
                     style: pw.TextStyle(
                       fontSize: 10,
                     ),
@@ -595,11 +595,229 @@ class FstlGenHelpers {
                             ])
                       ])),
 
-              pw.SizedBox(height: 5),
-              pw.Text("TEACHER'S LOAD PROGRAM",
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 5),
-              generateScheduleTable(schedule),
+              pw.SizedBox(height: 40),
+
+
+                pw.Container(
+                  alignment: pw.Alignment.centerLeft,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'SUMMARY',
+                        style: pw.TextStyle(
+                          fontSize: 11,
+                          fontWeight: pw.FontWeight.bold,
+                          decoration: pw.TextDecoration.underline,
+                        ),
+                      ),
+                      pw.SizedBox(height: 5),
+                      pw.Container(
+                        width: 178,
+                        padding: pw.EdgeInsets.only(left: 20),
+                        child: pw.Expanded(
+                          flex: 1,
+                          child: pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.end,
+                              children: [
+                                pw.Row(
+                                    mainAxisAlignment:
+                                    pw.MainAxisAlignment.end,
+                                    children: [
+                                      pw.Text('Equivalent teaching (hrs):',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text(
+                                          '_____${emptyIfZero(eqTeaching)}____',
+                                          style: const pw.TextStyle(
+                                              decoration:
+                                              pw.TextDecoration.underline,
+                                              fontSize: 7.5))
+                                    ]),
+                                pw.Row(
+                                    mainAxisAlignment:
+                                    pw.MainAxisAlignment.end,
+                                    children: [
+                                      pw.Text('Class Prep/Post (hrs):',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text(
+                                          '____${emptyIfZero(prepHours)}_____',
+                                          style: const pw.TextStyle(
+                                              decoration:
+                                              pw.TextDecoration.underline,
+                                              fontSize: 7.5))
+                                    ]),
+                                pw.Row(
+                                    mainAxisAlignment:
+                                    pw.MainAxisAlignment.end,
+                                    children: [
+                                      pw.Text('Consultation (hrs):',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text(
+                                          '____${emptyIfZero(consultationHours)}_____',
+                                          style: const pw.TextStyle(
+                                              decoration:
+                                              pw.TextDecoration.underline,
+                                              fontSize: 7.5))
+                                    ]),
+                                pw.Row(
+                                    mainAxisAlignment:
+                                    pw.MainAxisAlignment.end,
+                                    children: [
+                                      pw.Text('Quasi (hrs):',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text(
+                                          '____${emptyIfZero(double.parse(quasi.toString()))}_____',
+                                          style: const pw.TextStyle(
+                                              decoration:
+                                              pw.TextDecoration.underline,
+                                              fontSize: 7.5))
+                                    ]),
+                                pw.Row(
+                                    mainAxisAlignment:
+                                    pw.MainAxisAlignment.end,
+                                    children: [
+                                      pw.Text('Research and Extension (hrs):',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text('_________',
+                                          style: const pw.TextStyle(
+                                              decoration:
+                                              pw.TextDecoration.underline,
+                                              fontSize: 7.5))
+                                    ]),
+                                pw.Row(
+                                    mainAxisAlignment:
+                                    pw.MainAxisAlignment.end,
+                                    children: [
+                                      pw.Text('Admin Designation (hrs):',
+                                          style: const pw.TextStyle(
+                                              fontSize: 7.5)),
+                                      pw.Text('_________',
+                                          style: const pw.TextStyle(
+                                              decoration:
+                                              pw.TextDecoration.underline,
+                                              fontSize: 7.5))
+                                    ]),
+                                pw.Row(
+                                    mainAxisAlignment:
+                                    pw.MainAxisAlignment.end,
+                                    children: [
+                                      pw.Text('TOTAL:',
+                                          style: pw.TextStyle(
+                                              fontSize: 7.5,
+                                              fontWeight:
+                                              pw.FontWeight.bold)),
+                                      pw.Text(
+                                          '____${emptyIfZero(totalHours)}_____',
+                                          style: const pw.TextStyle(
+                                              decoration:
+                                              pw.TextDecoration.underline,
+                                              fontSize: 7.5))
+                                    ]),
+                                pw.Row(
+                                    mainAxisAlignment:
+                                    pw.MainAxisAlignment.end,
+                                    children: [
+                                      pw.Text('Total Overload:',
+                                          style: pw.TextStyle(
+                                              fontSize: 7.5,
+                                              fontWeight:
+                                              pw.FontWeight.bold)),
+                                      pw.Text(
+                                          '____${emptyIfZero(totalOverload)}_____',
+                                          style: const pw.TextStyle(
+                                              decoration:
+                                              pw.TextDecoration.underline,
+                                              fontSize: 7.5))
+                                    ]),
+                              ]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(height: 30),
+                pw.Container(
+                    child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                        children: [
+                          pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                pw.Text('Confirmed By:',
+                                    textAlign: pw.TextAlign.start,
+                                    style: pw.TextStyle(fontSize: 8)),
+                                pw.SizedBox(height: 10),
+                                pw.Column(
+                                    crossAxisAlignment:
+                                    pw.CrossAxisAlignment.center,
+                                    children: [
+                                      pw.Text(
+                                        details['faculty_name']
+                                            .toString()
+                                            .toUpperCase(),
+                                        style: pw.TextStyle(fontSize: 8),
+                                      ),
+                                      pw.Container(
+                                          width: 150,
+                                          height: 0.5,
+                                          color: PdfColors.black),
+                                      pw.Text('Faculty',
+                                          style: pw.TextStyle(fontSize: 8)),
+                                    ]),
+                              ]),
+                          pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                pw.Text('Submitted By:',
+                                    textAlign: pw.TextAlign.start,
+                                    style: pw.TextStyle(fontSize: 8)),
+                                pw.SizedBox(height: 10),
+                                pw.Column(
+                                    crossAxisAlignment:
+                                    pw.CrossAxisAlignment.center,
+                                    children: [
+                                      pw.Text(
+                                        "DR. JUNAR A. LANDICHO",
+                                        style: pw.TextStyle(fontSize: 8),
+                                      ),
+                                      pw.Container(
+                                          width: 150,
+                                          height: 0.5,
+                                          color: PdfColors.black),
+                                      pw.Text('Faculty',
+                                          style: pw.TextStyle(fontSize: 8)),
+                                    ]),
+                              ]),
+                          pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                pw.Text('Approved By:',
+                                    textAlign: pw.TextAlign.start,
+                                    style: pw.TextStyle(fontSize: 8)),
+                                pw.SizedBox(height: 10),
+                                pw.Column(
+                                    crossAxisAlignment:
+                                    pw.CrossAxisAlignment.center,
+                                    children: [
+                                      pw.Text(
+                                        "DR. JOCELYN B. BARBOSA",
+                                        style: pw.TextStyle(fontSize: 8),
+                                      ),
+                                      pw.Container(
+                                          width: 150,
+                                          height: 0.5,
+                                          color: PdfColors.black),
+                                      pw.Text('Faculty',
+                                          style: pw.TextStyle(fontSize: 8)),
+                                    ]),
+                              ]),
+                        ]))
+
 
               //
               // pw.SizedBox(height: 2),
@@ -1023,227 +1241,13 @@ class FstlGenHelpers {
         pageFormat: PdfPageFormat.legal,
         margin: const pw.EdgeInsets.symmetric(vertical: 40, horizontal: 20),
         build: (context) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
-              pw.Container(
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'SUMMARY',
-                      style: pw.TextStyle(
-                        fontSize: 11,
-                        fontWeight: pw.FontWeight.bold,
-                        decoration: pw.TextDecoration.underline,
-                      ),
-                    ),
-                    pw.SizedBox(height: 5),
-                    pw.Container(
-                      width: 178,
-                      padding: pw.EdgeInsets.only(left: 20),
-                      child: pw.Expanded(
-                        flex: 1,
-                        child: pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.end,
-                            children: [
-                              pw.Row(
-                                  mainAxisAlignment:
-                                  pw.MainAxisAlignment.end,
-                                  children: [
-                                    pw.Text('Equivalent teaching (hrs):',
-                                        style: const pw.TextStyle(
-                                            fontSize: 7.5)),
-                                    pw.Text(
-                                        '_____${emptyIfZero(eqTeaching)}____',
-                                        style: const pw.TextStyle(
-                                            decoration:
-                                            pw.TextDecoration.underline,
-                                            fontSize: 7.5))
-                                  ]),
-                              pw.Row(
-                                  mainAxisAlignment:
-                                  pw.MainAxisAlignment.end,
-                                  children: [
-                                    pw.Text('Class Prep/Post (hrs):',
-                                        style: const pw.TextStyle(
-                                            fontSize: 7.5)),
-                                    pw.Text(
-                                        '____${emptyIfZero(prepHours)}_____',
-                                        style: const pw.TextStyle(
-                                            decoration:
-                                            pw.TextDecoration.underline,
-                                            fontSize: 7.5))
-                                  ]),
-                              pw.Row(
-                                  mainAxisAlignment:
-                                  pw.MainAxisAlignment.end,
-                                  children: [
-                                    pw.Text('Consultation (hrs):',
-                                        style: const pw.TextStyle(
-                                            fontSize: 7.5)),
-                                    pw.Text(
-                                        '____${emptyIfZero(consultationHours)}_____',
-                                        style: const pw.TextStyle(
-                                            decoration:
-                                            pw.TextDecoration.underline,
-                                            fontSize: 7.5))
-                                  ]),
-                              pw.Row(
-                                  mainAxisAlignment:
-                                  pw.MainAxisAlignment.end,
-                                  children: [
-                                    pw.Text('Quasi (hrs):',
-                                        style: const pw.TextStyle(
-                                            fontSize: 7.5)),
-                                    pw.Text(
-                                        '____${emptyIfZero(double.parse(quasi.toString()))}_____',
-                                        style: const pw.TextStyle(
-                                            decoration:
-                                            pw.TextDecoration.underline,
-                                            fontSize: 7.5))
-                                  ]),
-                              pw.Row(
-                                  mainAxisAlignment:
-                                  pw.MainAxisAlignment.end,
-                                  children: [
-                                    pw.Text('Research and Extension (hrs):',
-                                        style: const pw.TextStyle(
-                                            fontSize: 7.5)),
-                                    pw.Text('_________',
-                                        style: const pw.TextStyle(
-                                            decoration:
-                                            pw.TextDecoration.underline,
-                                            fontSize: 7.5))
-                                  ]),
-                              pw.Row(
-                                  mainAxisAlignment:
-                                  pw.MainAxisAlignment.end,
-                                  children: [
-                                    pw.Text('Admin Designation (hrs):',
-                                        style: const pw.TextStyle(
-                                            fontSize: 7.5)),
-                                    pw.Text('_________',
-                                        style: const pw.TextStyle(
-                                            decoration:
-                                            pw.TextDecoration.underline,
-                                            fontSize: 7.5))
-                                  ]),
-                              pw.Row(
-                                  mainAxisAlignment:
-                                  pw.MainAxisAlignment.end,
-                                  children: [
-                                    pw.Text('TOTAL:',
-                                        style: pw.TextStyle(
-                                            fontSize: 7.5,
-                                            fontWeight:
-                                            pw.FontWeight.bold)),
-                                    pw.Text(
-                                        '____${emptyIfZero(totalHours)}_____',
-                                        style: const pw.TextStyle(
-                                            decoration:
-                                            pw.TextDecoration.underline,
-                                            fontSize: 7.5))
-                                  ]),
-                              pw.Row(
-                                  mainAxisAlignment:
-                                  pw.MainAxisAlignment.end,
-                                  children: [
-                                    pw.Text('Total Overload:',
-                                        style: pw.TextStyle(
-                                            fontSize: 7.5,
-                                            fontWeight:
-                                            pw.FontWeight.bold)),
-                                    pw.Text(
-                                        '____${emptyIfZero(totalOverload)}_____',
-                                        style: const pw.TextStyle(
-                                            decoration:
-                                            pw.TextDecoration.underline,
-                                            fontSize: 7.5))
-                                  ]),
-                            ]),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Container(
-                  child: pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-                      children: [
-                        pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              pw.Text('Confirmed By:',
-                                  textAlign: pw.TextAlign.start,
-                                  style: pw.TextStyle(fontSize: 8)),
-                              pw.SizedBox(height: 10),
-                              pw.Column(
-                                  crossAxisAlignment:
-                                  pw.CrossAxisAlignment.center,
-                                  children: [
-                                    pw.Text(
-                                      details['faculty_name']
-                                          .toString()
-                                          .toUpperCase(),
-                                      style: pw.TextStyle(fontSize: 8),
-                                    ),
-                                    pw.Container(
-                                        width: 150,
-                                        height: 0.5,
-                                        color: PdfColors.black),
-                                    pw.Text('Faculty',
-                                        style: pw.TextStyle(fontSize: 8)),
-                                  ]),
-                            ]),
-                        pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              pw.Text('Submitted By:',
-                                  textAlign: pw.TextAlign.start,
-                                  style: pw.TextStyle(fontSize: 8)),
-                              pw.SizedBox(height: 10),
-                              pw.Column(
-                                  crossAxisAlignment:
-                                  pw.CrossAxisAlignment.center,
-                                  children: [
-                                    pw.Text(
-                                      "DR. JUNAR A. LANDICHO",
-                                      style: pw.TextStyle(fontSize: 8),
-                                    ),
-                                    pw.Container(
-                                        width: 150,
-                                        height: 0.5,
-                                        color: PdfColors.black),
-                                    pw.Text('Faculty',
-                                        style: pw.TextStyle(fontSize: 8)),
-                                  ]),
-                            ]),
-                        pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              pw.Text('Approved By:',
-                                  textAlign: pw.TextAlign.start,
-                                  style: pw.TextStyle(fontSize: 8)),
-                              pw.SizedBox(height: 10),
-                              pw.Column(
-                                  crossAxisAlignment:
-                                  pw.CrossAxisAlignment.center,
-                                  children: [
-                                    pw.Text(
-                                      "DR. JOCELYN B. BARBOSA",
-                                      style: pw.TextStyle(fontSize: 8),
-                                    ),
-                                    pw.Container(
-                                        width: 150,
-                                        height: 0.5,
-                                        color: PdfColors.black),
-                                    pw.Text('Faculty',
-                                        style: pw.TextStyle(fontSize: 8)),
-                                  ]),
-                            ]),
-                      ]))
-            ])));
+              pw.Text("TEACHER'S LOAD PROGRAM",
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 5),
+              generateScheduleTable(schedule)])));
+
 
     return pdf; // Return the generated PDF
   }
@@ -1323,7 +1327,7 @@ class FstlGenHelpers {
     final Set<String> blacklist = <String>{};
 
     for (var entry in schedule) {
-      subjectColors.putIfAbsent(entry["subject"], () {
+      subjectColors.putIfAbsent(entry["schedule_id"]??entry['subject_code'], () {
         final hue = random.nextDouble();
         return pdfColorFromHsl(hue, 0.6, 0.8);
       });
@@ -1405,9 +1409,9 @@ class FstlGenHelpers {
 
             if (matchingSubjects.isNotEmpty) {
               final firstSubject = matchingSubjects.first;
-              final subjectKey = "${firstSubject["subject"]}-${day}";
+              final subjectKey = "${firstSubject["schedule_id"]??firstSubject["subject_code"]}-${day}";
               final subjectColor =
-                  subjectColors[firstSubject["subject"]] ??
+                  subjectColors[firstSubject["schedule_id"]??firstSubject["subject_code"]] ??
                       PdfColors.white;
               final section = firstSubject["section"] ?? '';
               final room = firstSubject["room"] ?? '';
@@ -1542,6 +1546,9 @@ class FstlGenHelpers {
             ),
             ...days.map((day) => pw.Container(
               alignment: pw.Alignment.center,
+              decoration: pw.BoxDecoration(
+                  border: pw.TableBorder(
+                      top: pw.BorderSide(color: PdfColors.black))),
               child: pw.Text("${totalHoursPerDay[day]}",
                   style: pw.TextStyle(
                       fontWeight: pw.FontWeight.bold, fontSize: 8)),
@@ -1550,6 +1557,7 @@ class FstlGenHelpers {
         ),
       ],
     );
+
   }
 
 
