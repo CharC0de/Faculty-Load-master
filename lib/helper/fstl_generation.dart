@@ -102,11 +102,11 @@ class FstlGenHelpers {
     final pdf = pw.Document();
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.legal,
         margin: const pw.EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-        build: (pw.Context context) {
-          return pw.Column(
+        build: (context)=> [
+          pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
               // Header Section
@@ -595,9 +595,12 @@ class FstlGenHelpers {
                             ])
                       ])),
 
+
+              pw.Text("TEACHER'S LOAD PROGRAM",
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 5),
+              generateScheduleTable(schedule),
               pw.SizedBox(height: 40),
-
-
                 pw.Container(
                   alignment: pw.Alignment.centerLeft,
                   child: pw.Column(
@@ -936,8 +939,10 @@ class FstlGenHelpers {
               // pw.SizedBox(height: 1), // Reduced spacing
               // generateScheduleTable(schedule),
             ],
-          );
-        },
+
+
+          )]
+
       ),
     );
     // pdf.addPage(
@@ -1237,16 +1242,13 @@ class FstlGenHelpers {
     //       }
     //   )
     // );
-    pdf.addPage(pw.Page(
-        pageFormat: PdfPageFormat.legal,
-        margin: const pw.EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-        build: (context) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.Text("TEACHER'S LOAD PROGRAM",
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 5),
-              generateScheduleTable(schedule)])));
+    // pdf.addPage(pw.Page(
+    //     pageFormat: PdfPageFormat.legal,
+    //     margin: const pw.EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+    //     build: (context) => pw.Column(
+    //         crossAxisAlignment: pw.CrossAxisAlignment.center,
+    //         children: [
+    //         ])));
 
 
     return pdf; // Return the generated PDF
