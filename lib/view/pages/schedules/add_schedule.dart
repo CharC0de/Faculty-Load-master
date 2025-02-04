@@ -18,7 +18,7 @@ import 'package:flutter_pdf_text/flutter_pdf_text.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
+import "package:flutter/services.dart";
 class AddSchedulePage extends StatefulWidget {
   final String uid;
   final String role;
@@ -135,7 +135,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
     var filePickerResult = await FilePicker.platform.pickFiles();
     if (filePickerResult != null) {
-      int? selectedHours = await _showQuasiHourDialog();
+      int? selectedHours = await _showQuasiHourDialog(context);
       setState(() {
         quasiHours = selectedHours??0;
         isLoading = true;
@@ -227,27 +227,86 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         .replaceAll('.', '')
         .toLowerCase();
   }
-  Future<int?> _showQuasiHourDialog() async {
+
+  Future<int?> _showQuasiHourDialog(BuildContext context) async {
     return await showDialog<int>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text("Select Quasi Hours"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(5, (index) {
-              return ListTile(
-                title: Text(index ==0?"No Quasi":"$index ${index ==1?"hour":"hours"}"),
-                onTap: () {
-                  Navigator.of(context).pop(index);
-                },
-              );
-            }),
-          ),
+        int? selectedValue = 0; // Default to 0 to avoid null issues
+        final textController = TextEditingController();
+        const int maxHours = 24; // Define the maximum limit
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Select Quasi Hours"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButton<int?>(
+                    isExpanded: true,
+                    value: selectedValue,
+                    hint: const Text('Select hours'),
+                    items: [
+                      const DropdownMenuItem(
+                        value: 0,
+                        child: Text("No Quasi"),
+                      ),
+                      ...List.generate(maxHours, (index) => index + 1)
+                          .map((value) => DropdownMenuItem(
+                        value: value,
+                        child: Text("$value ${value == 1 ? 'hour' : 'hours'}"),
+                      ))
+                          .toList(),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedValue = value;
+                        textController.clear(); // Clear input field when selecting dropdown
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  const Text("Or enter custom hours:"),
+                  TextField(
+                    controller: textController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter hours (0-24)',
+                    ),
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChanged: (value) {
+                      final parsed = int.tryParse(value);
+                      if (parsed != null && parsed >= 0 && parsed <= maxHours) {
+                        setState(() => selectedValue = parsed);
+                      } else {
+                        setState(() => selectedValue = null); // Invalid input clears selection
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('CANCEL'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (selectedValue != null) {
+                      Navigator.pop(context, selectedValue);
+                    }
+                  },
+                  child: const Text('SAVE'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
+
 
   Map<String, String> extractTeacherDetails(String text) {
     Map<String, String> teacherDetails = {};
